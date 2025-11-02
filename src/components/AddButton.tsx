@@ -6,22 +6,25 @@ export default function AddButton({ onClick }: AddButtonProps) {
   return (
     <button
       onClick={onClick}
-      className="relative h-[39px] w-[104px] shrink-0 rounded-[8px] bg-custom-green transition-colors hover:bg-custom-green-dark"
+      className="h-8 w-24 shrink-0 rounded-lg bg-custom-green cursor-pointer transition-colors hover:bg-custom-green-dark flex items-center justify-center"
     >
-      <div className="absolute top-[calc(50%+0.75px)] left-1/2 h-[2.5px] w-[22px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-gray-900" />
-      <div
-        className="absolute top-[calc(50%+0.5px)] left-[calc(50%-0.25px)] flex h-[calc(1px*((var(--transform-inner-width)*1)+(var(--transform-inner-height)*0)))] w-[calc(1px*((var(--transform-inner-height)*1)+(var(--transform-inner-width)*0)))] translate-x-[-50%] translate-y-[-50%] items-center justify-center"
-        style={
-          {
-            "--transform-inner-width": "24",
-            "--transform-inner-height": "2.5",
-          } as React.CSSProperties
-        }
+      <svg
+        width="22"
+        height="24"
+        viewBox="0 0 22 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        <div className="flex-none rotate-[90deg]">
-          <div className="h-[2.5px] w-6 rounded-[8px] bg-gray-900" />
-        </div>
-      </div>
+        <rect y="11" width="22" height="2.5" rx="1.25" fill="black" />
+        <rect
+          x="12"
+          width="24"
+          height="2.5"
+          rx="1.25"
+          transform="rotate(90 12 0)"
+          fill="black"
+        />
+      </svg>
     </button>
   );
 }

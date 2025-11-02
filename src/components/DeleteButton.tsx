@@ -24,7 +24,7 @@ export default function DeleteButton({ onClick }: DeleteButtonProps) {
   return (
     <button
       onClick={onClick}
-      className="h-8 w-8 shrink-0 rounded-2 bg-red-500 transition-colors hover:bg-red-600"
+      className="h-8 w-8 shrink-0 rounded-lg bg-red-500 transition-colors hover:bg-red-600"
     >
       <TrashIcon />
     </button>
