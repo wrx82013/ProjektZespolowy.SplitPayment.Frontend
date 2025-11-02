@@ -1,5 +1,3 @@
-import Navbar from "./Navbar";
-
 export interface CurrencySettings {
   mainCurrency: "USD" | "PLN" | "EUR" | "GBP";
   exchangeRates: {
@@ -13,15 +11,15 @@ export interface CurrencySettings {
 interface SettingsPageProps {
   settings: CurrencySettings;
   onSettingsChange: (settings: CurrencySettings) => void;
-  onNavigateToSplit: () => void;
-  onNavigateToHistory: () => void;
+  // onNavigateToSplit: () => void;
+  // onNavigateToHistory: () => void;
 }
 
 export default function SettingsPage({
   settings,
   onSettingsChange,
-  onNavigateToSplit,
-  onNavigateToHistory,
+  // onNavigateToSplit,
+  // onNavigateToHistory,
 }: SettingsPageProps) {
   const currencies: Array<"USD" | "PLN" | "EUR" | "GBP"> = [
     "USD",
@@ -57,7 +55,6 @@ export default function SettingsPage({
 
   return (
     <div className="min-h-screen bg-white">
-
       <div className="container mx-auto px-4 py-8">
         {/* Title */}
         <div className="mb-12">

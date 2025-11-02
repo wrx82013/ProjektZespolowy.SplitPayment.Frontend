@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-      - 'dev/**'
+      - "dev/**"
   workflow_dispatch:
 
 env:
@@ -12,8 +12,8 @@ env:
   DOCKER_REPOSITORY: mehdev66/projektzespolowy.splitpayment
   DOCKERFILE_PATH: ./Dockerfile
   BUILD_CONTEXT: .
-  NODE_VERSION: '20'            # Next 14/15 działa stabilnie na Node 20
-  NEXT_TELEMETRY_DISABLED: '1'  # wyciszamy telemetry
+  NODE_VERSION: "20" # Next 14/15 działa stabilnie na Node 20
+  NEXT_TELEMETRY_DISABLED: "1" # wyciszamy telemetry
 
 jobs:
   build:
@@ -33,7 +33,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: |
             package-lock.json
             **/package-lock.json
@@ -41,7 +41,7 @@ jobs:
       - name: Install deps (validate)
         run: npm ci
         env:
-          CI: 'true'
+          CI: "true"
 
       - name: Docker login
         uses: docker/login-action@v3

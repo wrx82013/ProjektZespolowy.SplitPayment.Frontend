@@ -13,7 +13,7 @@ export default function History() {
     router.push("/calculator");
   };
 
-  const handleEdit = (calculation) => {
+  const handleEdit = (calculation: any) => {
     handleEditCalculation(calculation);
     router.push("/calculator");
   };

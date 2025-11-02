@@ -45,26 +45,26 @@ interface SplitCalculatorProps {
 const mockData = {
   title: "Enter name of the bill you want to split",
   items: [
-      { id: "1", name: "VPS AWS bill", amount: "12", currency: "USD" },
-      { id: "2", name: "Vecel", amount: "12", currency: "PLN" },
-      {
-        id: "3",
-        name: "Cost of VPS for college project",
-        amount: "12",
-        currency: "PLN",
-      },
-    ],
-    homies: [
-      { id: "1", name: "Karol Wojtowicz", contact: "+48 123 456 789" },
-      {
-        id: "2",
-        name: "Grzegorz Kaczmarek",
-        contact: "kaczmarekgrzegorz11@gmail.com",
-      },
-      { id: "3", name: "Nikodem Biryło", contact: "" },
-      { id: "4", name: "Maciej Dorynek", contact: "" },
-    ]
-}
+    { id: "1", name: "VPS AWS bill", amount: "12", currency: "USD" },
+    { id: "2", name: "Vecel", amount: "12", currency: "PLN" },
+    {
+      id: "3",
+      name: "Cost of VPS for college project",
+      amount: "12",
+      currency: "PLN",
+    },
+  ],
+  homies: [
+    { id: "1", name: "Karol Wojtowicz", contact: "+48 123 456 789" },
+    {
+      id: "2",
+      name: "Grzegorz Kaczmarek",
+      contact: "kaczmarekgrzegorz11@gmail.com",
+    },
+    { id: "3", name: "Nikodem Biryło", contact: "" },
+    { id: "4", name: "Maciej Dorynek", contact: "" },
+  ],
+};
 
 export default function SplitCalculator({
   onNavigateToPayment,
