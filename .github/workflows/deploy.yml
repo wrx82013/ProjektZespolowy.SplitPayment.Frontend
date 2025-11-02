@@ -1,0 +1,82 @@
+name: build-and-push
+
+on:
+  push:
+    branches:
+      - master
+      - 'dev/**'
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: projektzespolowy.splitpayment
+  DOCKER_REPOSITORY: mehdev66/projektzespolowy.splitpayment
+  DOCKERFILE_PATH: ./Dockerfile
+  BUILD_CONTEXT: .
+  NODE_VERSION: '20'            # Next 14/15 działa stabilnie na Node 20
+  NEXT_TELEMETRY_DISABLED: '1'  # wyciszamy telemetry
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # (opcjonalnie) szybka walidacja zależności – nie budujemy lokalnie, tylko w Dockerze
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            **/package-lock.json
+
+      - name: Install deps (validate)
+        run: npm ci
+        env:
+          CI: 'true'
+
+      - name: Docker login
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_REPOSITORY }}
+          tags: |
+            type=raw,value=${{ github.run_number }}_${{ env.IMAGE_NAME }}
+            type=raw,value=latest_${{ env.IMAGE_NAME }}
+            type=ref,event=branch
+            type=sha
+
+      - name: Build & Push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.BUILD_CONTEXT }}
+          file: ${{ env.DOCKERFILE_PATH }}
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_TELEMETRY_DISABLED=${{ env.NEXT_TELEMETRY_DISABLED }}
+            NODE_VERSION=${{ env.NODE_VERSION }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
