@@ -45,26 +45,26 @@ interface SplitCalculatorProps {
 const mockData = {
   title: "Enter name of the bill you want to split",
   items: [
-      { id: "1", name: "VPS AWS bill", amount: "12", currency: "USD" },
-      { id: "2", name: "Vecel", amount: "12", currency: "PLN" },
-      {
-        id: "3",
-        name: "Cost of VPS for college project",
-        amount: "12",
-        currency: "PLN",
-      },
-    ],
-    homies: [
-      { id: "1", name: "Karol Wojtowicz", contact: "+48 123 456 789" },
-      {
-        id: "2",
-        name: "Grzegorz Kaczmarek",
-        contact: "kaczmarekgrzegorz11@gmail.com",
-      },
-      { id: "3", name: "Nikodem Biryło", contact: "" },
-      { id: "4", name: "Maciej Dorynek", contact: "" },
-    ]
-}
+    { id: "1", name: "VPS AWS bill", amount: "12", currency: "USD" },
+    { id: "2", name: "Vecel", amount: "12", currency: "PLN" },
+    {
+      id: "3",
+      name: "Cost of VPS for college project",
+      amount: "12",
+      currency: "PLN",
+    },
+  ],
+  homies: [
+    { id: "1", name: "Karol Wojtowicz", contact: "+48 123 456 789" },
+    {
+      id: "2",
+      name: "Grzegorz Kaczmarek",
+      contact: "kaczmarekgrzegorz11@gmail.com",
+    },
+    { id: "3", name: "Nikodem Biryło", contact: "" },
+    { id: "4", name: "Maciej Dorynek", contact: "" },
+  ],
+};
 
 export default function SplitCalculator({
   onNavigateToPayment,
@@ -176,8 +176,8 @@ export default function SplitCalculator({
       </div>
 
       {/* Bill Title Input */}
-      <div className="relative w-full shrink-0 rounded-2">
-        <div className="flex size-full flex-row items-center rounded-2">
+      <div className="relative w-full shrink-0 rounded-lg">
+        <div className="flex size-full flex-row items-center rounded-lg">
           <div className="relative box-border flex w-full content-stretch items-center gap-2.5 p-2.5">
             <input
               type="text"
@@ -213,7 +213,7 @@ export default function SplitCalculator({
           ))}
           {/* Add Item Row */}
           <div className="relative flex w-full shrink-0 content-stretch items-center gap-4">
-            <div className="relative box-border flex w-[492px] shrink-0 content-stretch items-center gap-2.5 rounded-[8px] p-[10px]">
+            <div className="relative box-border flex w-[492px] shrink-0 content-stretch items-center gap-2.5 rounded-lg p-[10px]">
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-0 rounded-xl border border-solid border-black"
@@ -256,7 +256,7 @@ export default function SplitCalculator({
           />
           <div className="flex size-full flex-row items-center">
             <div className="relative box-border flex w-full content-stretch items-center justify-between p-[10px]">
-              <div className="relative flex shrink-0 content-stretch items-center justify-center gap-[10px]">
+              <div className="relative flex shrink-0 content-stretch items-center justify-center gap-2.5">
                 <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-[#57cbab] not-italic">
                   Suma
                 </p>
@@ -267,7 +267,7 @@ export default function SplitCalculator({
                 </p>
                 <button
                   onClick={calculateSplit}
-                  className="relative box-border flex shrink-0 content-stretch items-center justify-center gap-[10px] rounded-[8px] bg-[#57cbab] px-[28px] py-[10px] transition-colors hover:bg-[#48b89a]"
+                  className="relative box-border flex shrink-0 content-stretch items-center justify-center gap-2.5 rounded-lg bg-[#57cbab] px-[28px] py-[10px] transition-colors hover:bg-[#48b89a]"
                 >
                   <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-black not-italic">
                     Oblicz

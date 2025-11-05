@@ -8,7 +8,7 @@ interface BillItemProps {
   onAmountChange: (value: string) => void;
   onCurrencyChange: (value: string) => void;
   availableCurrencies?: string[];
-  onRemove: () => void 
+  onRemove: () => void;
 }
 
 export default function BillItem({
@@ -19,7 +19,7 @@ export default function BillItem({
   onAmountChange,
   onCurrencyChange,
   availableCurrencies = ["PLN", "USD", "EUR", "GBP"],
-  onRemove
+  onRemove,
 }: BillItemProps) {
   return (
     <div className="flex w-full shrink-0 content-stretch items-center gap-4">
