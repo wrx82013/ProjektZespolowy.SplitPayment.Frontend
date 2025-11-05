@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: development
     env:
-      IMAGE_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/ProjektZespolowy.SplitPayment.Frontend
+      IMAGE_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/projektZespolowy.splitPayment.frontend
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - name: Checkout
@@ -58,7 +58,7 @@ jobs:
           script: |
             set -Eeuo pipefail
 
-            IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/ProjektZespolowy.SplitPayment.Frontend:dev"
+            IMAGE="${{ secrets.DOCKERHUB_USERNAME }}/projektZespolowy.splitPayment.frontend:dev"
             APP_NAME="ProjektZespolowy.SplitPayment.Frontend-dev"
             NET_NAME="app-network"
 
