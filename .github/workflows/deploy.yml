@@ -1,145 +1,67 @@
-name: build-and-deploy
+name: Build and Deploy (develop only)
 
 on:
   push:
-    branches: [ master, "dev/**" ]
-  workflow_dispatch:
-
-concurrency:
-  group: build-deploy-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
-  # Docker Hub repo
-  DOCKER_REPOSITORY: mehdev66/projektzespolowy.splitpayment
-  NODE_VERSION: "20"
-  NEXT_TELEMETRY_DISABLED: "1"
+    branches:
+      - 'dev/**'          # tylko branże developerskie
+  workflow_dispatch: {}   # opcjonalne ręczne odpalanie (również deploy na dev)
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    outputs:
-      image_repo: ${{ steps.meta.outputs.image_repo }}
-      full_tag_sha: ${{ steps.meta.outputs.full_tag_sha }}
-      full_tag_latest: ${{ steps.meta.outputs.full_tag_latest }}
-      digest: ${{ steps.build_push.outputs.digest }}
+    environment: development
+    env:
+      IMAGE_REPO: ${{ secrets.DCR_USERNAME }}/ProjektZespolowy.SplitPayment.Frontend
+      NEXT_TELEMETRY_DISABLED: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Setup Node (optional)
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
+      - name: Log in to registry
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.DCR_USERNAME }}
+          password: ${{ secrets.DCR_PASSWORD }}
 
-      - name: Compute image metadata
-        id: meta
-        run: |
-          set -euo pipefail
-          IMAGE_REPO="${DOCKER_REPOSITORY}"
-          SHORT_SHA="${GITHUB_SHA::12}"
-
-          REF_NAME="${GITHUB_REF_NAME}"
-          BRANCH_SLUG="$(echo "$REF_NAME" | tr '/' '-' | tr '[:upper:]' '[:lower:]')"
-
-          if [ "$REF_NAME" = "master" ]; then
-            LATEST_TAG="latest"
-          else
-            LATEST_TAG="dev-${BRANCH_SLUG}"
-          fi
-
-          FULL_TAG_SHA="${IMAGE_REPO}:${SHORT_SHA}"
-          FULL_TAG_LATEST="${IMAGE_REPO}:${LATEST_TAG}"
-
-          {
-            echo "image_repo=${IMAGE_REPO}"
-            echo "short_sha=${SHORT_SHA}"
-            echo "branch_slug=${BRANCH_SLUG}"
-            echo "latest_tag=${LATEST_TAG}"
-            echo "full_tag_sha=${FULL_TAG_SHA}"
-            echo "full_tag_latest=${FULL_TAG_LATEST}"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Build & Push
-        id: build_push
-        uses: docker/build-push-action@v6
+      - name: Build and push (dev)
+        uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
           push: true
           tags: |
-            ${{ steps.meta.outputs.full_tag_sha }}
-            ${{ steps.meta.outputs.full_tag_latest }}
-          provenance: false
+            ${{ env.IMAGE_REPO }}:dev
+            ${{ env.IMAGE_REPO }}:dev-${{ github.sha }}
+          build-args: |
+            BUILD_DATE=${{ github.run_number }}
+          cache-from: type=registry,ref=${{ env.IMAGE_REPO }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_REPO }}:buildcache,mode=max
 
-      - name: Summary
-        run: |
-          echo "Repo:         ${{ steps.meta.outputs.image_repo }}"
-          echo "Tag (SHA):    ${{ steps.meta.outputs.full_tag_sha }}"
-          echo "Tag (latest): ${{ steps.meta.outputs.full_tag_latest }}"
-          echo "Digest:       ${{ steps.build_push.outputs.digest }}"
-
-  deploy:
+  deploy-dev:
     runs-on: ubuntu-latest
     needs: build
-    env:
-      # Mapowanie na Twoje nazwy:
-      # host z repo variables (VM_HOST_SR01A), user najpierw z secreta (VM_SSH_KEY_USER), fallback do variables (VM_USERNAME)
-      DEPLOY_HOST: ${{ vars.VM_HOST_SR01A }}
-      DEPLOY_USER: ${{ secrets.VM_SSH_KEY_USER || vars.VM_USERNAME }}
-      DEPLOY_KEY:  ${{ secrets.VM_SSH_KEY }}
-      DEPLOY_PORT: ${{ secrets.VM_SSH_PORT || 22 }}
+    environment:
+      name: development
+      url: https://url_amazon/apka
     steps:
-      - name: Preflight – validate SSH inputs
-        shell: bash
-        run: |
-          set -euo pipefail
-          fail(){ echo "::error ::$1"; exit 1; }
-          [ -n "${DEPLOY_HOST}" ] || fail "DEPLOY_HOST (vars.VM_HOST_SR01A) is empty"
-          [ -n "${DEPLOY_USER}" ] || fail "DEPLOY_USER (secrets.VM_SSH_KEY_USER || vars.VM_USERNAME) is empty"
-          [ -n "${DEPLOY_KEY}"  ] || fail "DEPLOY_KEY (secrets.VM_SSH_KEY) is empty"
-          echo "SSH inputs OK"
-
-      - name: Deploy over SSH (immutable by digest, fallback to tag)
+      - name: Deploy to Development VM
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host:     ${{ env.DEPLOY_HOST }}
-          username: ${{ env.DEPLOY_USER }}
-          key:      ${{ env.DEPLOY_KEY }}
-          port:     ${{ env.DEPLOY_PORT }}
-          script_stop: true
+          host: ${{ vars.VM_HOST_SR01A }}
+          username: ${{ vars.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
           script: |
             set -Eeuo pipefail
 
-            IMAGE_REPO="${{ needs.build.outputs.image_repo }}"
-            DIGEST="${{ needs.build.outputs.digest }}"
-            IMAGE_BY_DIGEST="${IMAGE_REPO}@${DIGEST}"
-            IMAGE_BY_TAG="${{ needs.build.outputs.full_tag_sha }}"
-
-            APP_NAME="ProjektZespolowy.SplitPayment.Frontend"
+            IMAGE="${{ secrets.DCR_USERNAME }}/ProjektZespolowy.SplitPayment.Frontend:dev"
+            APP_NAME="ProjektZespolowy.SplitPayment.Frontend-dev"
             NET_NAME="app-network"
-            EXPOSE_PORT="3000"
 
             log() { echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] $*"; }
-            container_running() { docker ps -q -f name="^/${APP_NAME}$" | grep -q .; }
-            container_exists()  { docker ps -aq -f name="^/${APP_NAME}$" | grep -q .; }
 
             ensure_network() {
               if ! docker network inspect "${NET_NAME}" >/dev/null 2>&1; then
@@ -150,58 +72,55 @@ jobs:
               fi
             }
 
-            stop_container_safe() { container_running && docker.stop "${APP_NAME}" >/dev/null || true; } || true
-            remove_container_safe(){ container_exists  && docker rm   "${APP_NAME}" >/dev/null || true; }
+            container_running() { docker ps -q -f name="^/${APP_NAME}$" | grep -q .; }
+            container_exists()  { docker ps -aq -f name="^/${APP_NAME}$" | grep -q .; }
 
-            pull_or_fallback() {
-              local primary="$1" fallback="$2"
-              log "Pulling image (by digest): ${primary}"
-              if docker pull "${primary}"; then
-                echo "${primary}"
-                return
+            stop_container_safe() {
+              if container_running; then
+                log "Stopping running container '${APP_NAME}'..."
+                docker stop "${APP_NAME}" >/dev/null
+              else
+                log "No running container '${APP_NAME}' to stop."
               fi
-              log "WARN: Pull by digest failed. Falling back to tag: ${fallback}"
-              docker pull "${fallback}"
-              echo "${fallback}"
+            }
+
+            remove_container_safe() {
+              if container_exists; then
+                log "Removing existing container '${APP_NAME}'..."
+                docker rm "${APP_NAME}" >/dev/null
+              else
+                log "No existing container '${APP_NAME}' to remove."
+              fi
             }
 
             ensure_network
-            CHOSEN_IMAGE="$(pull_or_fallback "${IMAGE_BY_DIGEST}" "${IMAGE_BY_TAG}")"
+            log "Pulling image ${IMAGE}..."
+            docker pull "${IMAGE}"
 
-            # Stop/Remove jeśli istnieje
-            if docker ps -q -f name="^/${APP_NAME}$" | grep -q .; then docker stop "${APP_NAME}" >/dev/null || true; fi
-            if docker ps -aq -f name="^/${APP_NAME}$" | grep -q .; then docker rm   "${APP_NAME}" >/dev/null || true; fi
+            stop_container_safe
+            remove_container_safe
 
-            log "Starting '${APP_NAME}' from '${CHOSEN_IMAGE}'..."
+            log "Starting new container '${APP_NAME}' (base path: '${BASE_PATH:-<empty>}')..."
             docker run -d \
               --name "${APP_NAME}" \
               --network "${NET_NAME}" \
               --restart unless-stopped \
-              -e NODE_ENV=production \
-              -e PORT="${EXPOSE_PORT}" \
-              -p ${EXPOSE_PORT}:${EXPOSE_PORT} \
-              "${CHOSEN_IMAGE}"
+              -e NODE_ENV=development \
+              -e PORT=3000 \
+              "${IMAGE}"
 
-            # Readiness probe
-            if command -v curl >/dev/null 2>&1; then
-              for i in {1..20}; do
-                if curl -fsS "http://127.0.0.1:${EXPOSE_PORT}/" >/dev/null; then
-                  log "App is ready."
-                  break
-                fi
-                log "Waiting for app… ($i/20)"
-                sleep 3
-              done
+            log "Waiting for container to stabilize..."
+            sleep 10
+
+            if container_running; then
+              log "Container '${APP_NAME}' is running."
             else
-              sleep 10
-            fi
-
-            if ! docker ps -q -f name="^/${APP_NAME}$" | grep -q .; then
-              log "ERROR: App failed to start."
+              log "ERROR: Container '${APP_NAME}' failed to start."
               docker logs "${APP_NAME}" || true
               exit 1
             fi
 
-            log "Pruning dangling images…"
+            log "Pruning dangling images..."
             docker image prune -f >/dev/null || true
-            log "Deployment successful."
+
+            log "Development deployment successful!"
