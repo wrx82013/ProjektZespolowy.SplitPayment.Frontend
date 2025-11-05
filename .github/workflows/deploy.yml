@@ -12,8 +12,8 @@ env:
   DOCKER_REPOSITORY: mehdev66/projektzespolowy.splitpayment
   DOCKERFILE_PATH: ./Dockerfile
   BUILD_CONTEXT: .
-  NODE_VERSION: "20" # Next 14/15 działa stabilnie na Node 20
-  NEXT_TELEMETRY_DISABLED: "1" # wyciszamy telemetry
+  NODE_VERSION: "20"
+  NEXT_TELEMETRY_DISABLED: "1"
 
 jobs:
   build:
@@ -21,6 +21,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      image_ref: ${{ steps.prepare.outputs.image_ref }}   # <-- to będzie użyte w deploy
 
     steps:
       - name: Checkout
@@ -28,8 +30,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # (opcjonalnie) szybka walidacja zależności – nie budujemy lokalnie, tylko w Dockerze
-      - name: Setup Node.js
+      - name: Setup Node.js (cache only for sanity check)
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -66,6 +67,12 @@ jobs:
             type=ref,event=branch
             type=sha
 
+      # Przygotuj *niemutowalny* tag do propagation (ten będzie użyty w deploy)
+      - name: Prepare immutable image ref
+        id: prepare
+        run: |
+          echo "image_ref=${{ env.DOCKER_REPOSITORY }}:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
       - name: Build & Push image
         uses: docker/build-push-action@v6
         with:
@@ -73,7 +80,10 @@ jobs:
           file: ${{ env.DOCKERFILE_PATH }}
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ${{ steps.meta.outputs.tags }}
+          # Pchamy zarówno “ładne” tagi z meta, jak i nasz niemutowalny tag z SHA
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+            ${{ steps.prepare.outputs.image_ref }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             NEXT_TELEMETRY_DISABLED=${{ env.NEXT_TELEMETRY_DISABLED }}
@@ -82,71 +92,85 @@ jobs:
           cache-to: type=gha,mode=max
 
   deploy:
-      runs-on: ubuntu-latest
-      needs: [build]
-      environment:
-        name: development
-        url: 3.71.231.81
-      steps:
-        - name: Deploy to Development VM
-          uses: appleboy/ssh-action@v1.0.3
-          with:
-            host: ${{ vars.VM_HOST_SR01A }}
-            username: ${{ vars.VM_USERNAME }}
-            key: ${{ secrets.VM_SSH_KEY }}
-            script: |
-              set -Eeuo pipefail
-              IMAGE="${{ vars.DCR_USERNAME }}/IMAGE_NAME"
-              APP_NAME="wedding-dev"
-              NET_NAME="app-network"
-              log() { echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] $*"; }
-              ensure_network() {
-                if ! docker network inspect "${NET_NAME}" >/dev/null 2>&1; then
-                  log "Network '${NET_NAME}' not found. Creating..."
-                  docker network create "${NET_NAME}"
-                else
-                  log "Network '${NET_NAME}' exists."
-                fi
-              }
-              container_running() { docker ps -q -f name="^/${APP_NAME}$" | grep -q .; }
-              container_exists()  { docker ps -aq -f name="^/${APP_NAME}$" | grep -q .; }
-              stop_container_safe() {
-                if container_running; then
-                  log "Stopping running container '${APP_NAME}'..."
-                  docker stop "${APP_NAME}" >/dev/null
-                else
-                  log "No running container '${APP_NAME}' to stop."
-                fi
-              }
-              remove_container_safe() {
-                if container_exists; then
-                  log "Removing existing container '${APP_NAME}'..."
-                  docker rm "${APP_NAME}" >/dev/null
-                else
-                  log "No existing container '${APP_NAME}' to remove."
-                fi
-              }
-              ensure_network
-              log "Pulling image ${IMAGE}..."
-              docker pull "${IMAGE}"
-              stop_container_safe
-              remove_container_safe
-              docker run -d \
-                --name "ProjektZespolowy.SplitPayment.Frontend" \
-                --network "app-network" \
-                --restart unless-stopped \
-                -e NODE_ENV=development \
-                -e PORT=3000 \
-                "${IMAGE}"
-              log "Waiting for container to stabilize..."
-              sleep 10
-              if container_running; then
-                log "Container '${APP_NAME}' is running."
+    runs-on: ubuntu-latest
+    needs: [build]
+    environment:
+      name: development
+      url: 3.71.231.81
+    steps:
+      - name: Deploy to Development VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.VM_HOST_SR01A }}
+          username: ${{ vars.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            set -Eeuo pipefail
+
+            IMAGE="${{ needs.build.outputs.image_ref }}"   # <-- dokładnie ten sam tag z build
+            APP_NAME="ProjektZespolowy.SplitPayment.Frontend"
+            NET_NAME="app-network"
+
+            log() { echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] $*"; }
+
+            ensure_network() {
+              if ! docker network inspect "${NET_NAME}" >/dev/null 2>&1; then
+                log "Network '${NET_NAME}' not found. Creating..."
+                docker network create "${NET_NAME}"
               else
-                log "ERROR: Container '${APP_NAME}' failed to start."
-                docker logs "${APP_NAME}" || true
-                exit 1
+                log "Network '${NET_NAME}' exists."
               fi
-              log "Pruning dangling images..."
-              docker image prune -f >/dev/null || true
-              log "Deployment successful!"
+            }
+
+            container_running() { docker ps -q -f name="^/${APP_NAME}$" | grep -q .; }
+            container_exists()  { docker ps -aq -f name="^/${APP_NAME}$" | grep -q .; }
+
+            stop_container_safe() {
+              if container_running; then
+                log "Stopping running container '${APP_NAME}'..."
+                docker stop "${APP_NAME}" >/dev/null
+              else
+                log "No running container '${APP_NAME}' to stop."
+              fi
+            }
+
+            remove_container_safe() {
+              if container_exists; then
+                log "Removing existing container '${APP_NAME}'..."
+                docker rm "${APP_NAME}" >/dev/null
+              else
+                log "No existing container '${APP_NAME}' to remove."
+              fi
+            }
+
+            ensure_network
+
+            log "Pulling image ${IMAGE}..."
+            docker pull "${IMAGE}"
+
+            stop_container_safe
+            remove_container_safe
+
+            docker run -d \
+              --name "${APP_NAME}" \
+              --network "${NET_NAME}" \
+              --restart unless-stopped \
+              -e NODE_ENV=development \
+              -e PORT=3000 \
+              -p 3000:3000 \
+              "${IMAGE}"
+
+            log "Waiting for container to stabilize..."
+            sleep 10
+
+            if container_running; then
+              log "Container '${APP_NAME}' is running."
+            else
+              log "ERROR: Container '${APP_NAME}' failed to start."
+              docker logs "${APP_NAME}" || true
+              exit 1
+            fi
+
+            log "Pruning dangling images..."
+            docker image prune -f >/dev/null || true
+            log "Deployment successful!"
