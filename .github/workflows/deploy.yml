@@ -96,7 +96,7 @@ jobs:
             key: ${{ secrets.VM_SSH_KEY }}
             script: |
               set -Eeuo pipefail
-              IMAGE="${{ secrets.ACR_USERNAME }}/IMAGE_NAME"
+              IMAGE="${{ secrets.DCR_USERNAME }}/IMAGE_NAME"
               APP_NAME="wedding-dev"
               NET_NAME="app-network"
               log() { echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] $*"; }
