@@ -1,10 +1,8 @@
-name: build-and-push
+name: build-and-deploy
 
 on:
   push:
-    branches:
-      - master
-      - "dev/**"
+    branches: [ master, "dev/**" ]
   workflow_dispatch:
 
 env:
@@ -18,100 +16,59 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     outputs:
-      image_ref: ${{ steps.prepare.outputs.image_ref }}   # <-- to będzie użyte w deploy
-
+      digest: ${{ steps.push.outputs.digest }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Setup Node.js (cache only for sanity check)
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-          cache-dependency-path: |
-            package-lock.json
-            **/package-lock.json
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-      - name: Install deps (validate)
-        run: npm ci
-        env:
-          CI: "true"
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Docker login
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.DOCKER_REPOSITORY }}
-          tags: |
-            type=raw,value=${{ github.run_number }}_${{ env.IMAGE_NAME }}
-            type=raw,value=latest_${{ env.IMAGE_NAME }}
-            type=ref,event=branch
-            type=sha
-
-      # Przygotuj *niemutowalny* tag do propagation (ten będzie użyty w deploy)
-      - name: Prepare immutable image ref
-        id: prepare
-        run: |
-          echo "image_ref=${{ env.DOCKER_REPOSITORY }}:${{ github.sha }}" >> "$GITHUB_OUTPUT"
-
-      - name: Build & Push image
+      - name: Build & Push
+        id: push
         uses: docker/build-push-action@v6
         with:
           context: ${{ env.BUILD_CONTEXT }}
           file: ${{ env.DOCKERFILE_PATH }}
           push: true
-          platforms: linux/amd64,linux/arm64
-          # Pchamy zarówno “ładne” tagi z meta, jak i nasz niemutowalny tag z SHA
           tags: |
-            ${{ steps.meta.outputs.tags }}
-            ${{ steps.prepare.outputs.image_ref }}
-          labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            NEXT_TELEMETRY_DISABLED=${{ env.NEXT_TELEMETRY_DISABLED }}
-            NODE_VERSION=${{ env.NODE_VERSION }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+            ${{ env.DOCKER_REPOSITORY }}:${{ github.sha }}
+            ${{ env.DOCKER_REPOSITORY }}:latest
+          # UWAGA: ten krok wystawia 'digest' w outputs (sha256:...)
+          provenance: false
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [build]
-    environment:
-      name: development
-      url: 3.71.231.81
+    needs: build
+    env:
+      # Złóż pełny immutable image ref z digestem z joba 'build'
+      IMAGE: ${{ env.DOCKER_REPOSITORY }}@${{ needs.build.outputs.digest }}
+      APP_NAME: ProjektZespolowy.SplitPayment.Frontend
+      NET_NAME: app-network
     steps:
-      - name: Deploy to Development VM
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ vars.VM_HOST_SR01A }}
-          username: ${{ vars.VM_USERNAME }}
-          key: ${{ secrets.VM_SSH_KEY }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
           script: |
             set -Eeuo pipefail
-
-            IMAGE="${{ needs.build.outputs.image_ref }}"   # <-- dokładnie ten sam tag z build
-            APP_NAME="ProjektZespolowy.SplitPayment.Frontend"
-            NET_NAME="app-network"
-
             log() { echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] $*"; }
+
+            IMAGE="${IMAGE}"
+            APP_NAME="${APP_NAME}"
+            NET_NAME="${NET_NAME}"
 
             ensure_network() {
               if ! docker network inspect "${NET_NAME}" >/dev/null 2>&1; then
@@ -144,7 +101,6 @@ jobs:
             }
 
             ensure_network
-
             log "Pulling image ${IMAGE}..."
             docker pull "${IMAGE}"
 
@@ -155,7 +111,7 @@ jobs:
               --name "${APP_NAME}" \
               --network "${NET_NAME}" \
               --restart unless-stopped \
-              -e NODE_ENV=development \
+              -e NODE_ENV=production \
               -e PORT=3000 \
               -p 3000:3000 \
               "${IMAGE}"
