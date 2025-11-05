@@ -10,9 +10,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Repo na Docker Hub
+  # Docker Hub repo
   DOCKER_REPOSITORY: mehdev66/projektzespolowy.splitpayment
-  # Środowisko builda
   NODE_VERSION: "20"
   NEXT_TELEMETRY_DISABLED: "1"
 
@@ -33,7 +32,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node (for potential prebuilds – optional)
+      - name: Setup Node (optional)
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -57,7 +56,6 @@ jobs:
           IMAGE_REPO="${DOCKER_REPOSITORY}"
           SHORT_SHA="${GITHUB_SHA::12}"
 
-          # branch slug (bez ukośników)
           REF_NAME="${GITHUB_REF_NAME}"
           BRANCH_SLUG="$(echo "$REF_NAME" | tr '/' '-' | tr '[:upper:]' '[:lower:]')"
 
@@ -79,18 +77,16 @@ jobs:
             echo "full_tag_latest=${FULL_TAG_LATEST}"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Build & Push (standalone / Next.js)
+      - name: Build & Push
         id: build_push
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: true
-          # dwa tagi: immutable po SHA i ruchomy "latest/dev-branch"
           tags: |
             ${{ steps.meta.outputs.full_tag_sha }}
             ${{ steps.meta.outputs.full_tag_latest }}
-          # digest będzie dostępny w outputs jako steps.build_push.outputs.digest
           provenance: false
 
       - name: Summary
@@ -103,19 +99,35 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    env:
+      # Mapowanie na Twoje nazwy:
+      # host z repo variables (VM_HOST_SR01A), user najpierw z secreta (VM_SSH_KEY_USER), fallback do variables (VM_USERNAME)
+      DEPLOY_HOST: ${{ vars.VM_HOST_SR01A }}
+      DEPLOY_USER: ${{ secrets.VM_SSH_KEY_USER || vars.VM_USERNAME }}
+      DEPLOY_KEY:  ${{ secrets.VM_SSH_KEY }}
+      DEPLOY_PORT: ${{ secrets.VM_SSH_PORT || 22 }}
     steps:
+      - name: Preflight – validate SSH inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          fail(){ echo "::error ::$1"; exit 1; }
+          [ -n "${DEPLOY_HOST}" ] || fail "DEPLOY_HOST (vars.VM_HOST_SR01A) is empty"
+          [ -n "${DEPLOY_USER}" ] || fail "DEPLOY_USER (secrets.VM_SSH_KEY_USER || vars.VM_USERNAME) is empty"
+          [ -n "${DEPLOY_KEY}"  ] || fail "DEPLOY_KEY (secrets.VM_SSH_KEY) is empty"
+          echo "SSH inputs OK"
+
       - name: Deploy over SSH (immutable by digest, fallback to tag)
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
+          host:     ${{ env.DEPLOY_HOST }}
+          username: ${{ env.DEPLOY_USER }}
+          key:      ${{ env.DEPLOY_KEY }}
+          port:     ${{ env.DEPLOY_PORT }}
           script_stop: true
           script: |
             set -Eeuo pipefail
 
-            # -------- Config (from build outputs) --------
             IMAGE_REPO="${{ needs.build.outputs.image_repo }}"
             DIGEST="${{ needs.build.outputs.digest }}"
             IMAGE_BY_DIGEST="${IMAGE_REPO}@${DIGEST}"
@@ -138,34 +150,16 @@ jobs:
               fi
             }
 
-            stop_container_safe() {
-              if container_running; then
-                log "Stopping running container '${APP_NAME}'..."
-                docker stop "${APP_NAME}" >/dev/null
-              else
-                log "No running container '${APP_NAME}' to stop."
-              fi
-            }
-
-            remove_container_safe() {
-              if container_exists; then
-                log "Removing existing container '${APP_NAME}'..."
-                docker rm "${APP_NAME}" >/dev/null
-              else
-                log "No existing container '${APP_NAME}' to remove."
-              fi
-            }
+            stop_container_safe() { container_running && docker.stop "${APP_NAME}" >/dev/null || true; } || true
+            remove_container_safe(){ container_exists  && docker rm   "${APP_NAME}" >/dev/null || true; }
 
             pull_or_fallback() {
-              local primary="$1"
-              local fallback="$2"
-
+              local primary="$1" fallback="$2"
               log "Pulling image (by digest): ${primary}"
               if docker pull "${primary}"; then
                 echo "${primary}"
-                return 0
+                return
               fi
-
               log "WARN: Pull by digest failed. Falling back to tag: ${fallback}"
               docker pull "${fallback}"
               echo "${fallback}"
@@ -174,11 +168,11 @@ jobs:
             ensure_network
             CHOSEN_IMAGE="$(pull_or_fallback "${IMAGE_BY_DIGEST}" "${IMAGE_BY_TAG}")"
 
-            stop_container_safe
-            remove_container_safe
+            # Stop/Remove jeśli istnieje
+            if docker ps -q -f name="^/${APP_NAME}$" | grep -q .; then docker stop "${APP_NAME}" >/dev/null || true; fi
+            if docker ps -aq -f name="^/${APP_NAME}$" | grep -q .; then docker rm   "${APP_NAME}" >/dev/null || true; fi
 
-            # Run container
-            log "Starting container '${APP_NAME}' from '${CHOSEN_IMAGE}'..."
+            log "Starting '${APP_NAME}' from '${CHOSEN_IMAGE}'..."
             docker run -d \
               --name "${APP_NAME}" \
               --network "${NET_NAME}" \
@@ -188,32 +182,26 @@ jobs:
               -p ${EXPOSE_PORT}:${EXPOSE_PORT} \
               "${CHOSEN_IMAGE}"
 
-            # Simple readiness probe (curl). If curl is not present, try logs.
-            ATTEMPTS=20
-            SLEEP_SEC=3
-            READY=0
-
+            # Readiness probe
             if command -v curl >/dev/null 2>&1; then
-              for i in $(seq 1 $ATTEMPTS); do
-                if curl -fsS "http://127.0.0.1:${EXPOSE_PORT}/" >/dev/null 2>&1; then
-                  READY=1
+              for i in {1..20}; do
+                if curl -fsS "http://127.0.0.1:${EXPOSE_PORT}/" >/dev/null; then
+                  log "App is ready."
                   break
                 fi
-                log "Waiting for app to become ready... attempt $i/${ATTEMPTS}"
-                sleep "${SLEEP_SEC}"
+                log "Waiting for app… ($i/20)"
+                sleep 3
               done
             else
-              # Fallback: short delay + check running state
               sleep 10
-              if container_running; then READY=1; fi
             fi
 
-            if [ "$READY" -ne 1 ]; then
-              log "ERROR: App didn't become ready."
+            if ! docker ps -q -f name="^/${APP_NAME}$" | grep -q .; then
+              log "ERROR: App failed to start."
               docker logs "${APP_NAME}" || true
               exit 1
             fi
 
-            log "Pruning dangling images..."
+            log "Pruning dangling images…"
             docker image prune -f >/dev/null || true
             log "Deployment successful."
