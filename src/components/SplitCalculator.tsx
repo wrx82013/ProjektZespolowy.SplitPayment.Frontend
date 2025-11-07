@@ -6,6 +6,12 @@ import HomieItem from "./HomieItem";
 import AddButton from "./AddButton";
 import CalculationResults from "./CalculationResults";
 import { toast } from "sonner";
+import { createSplitPayment } from "@/lib/api";
+import {
+  CreateSplitPaymentRequestDto,
+  SplitType,
+  UserPaymentInputDto,
+} from "@/types/api";
 
 interface Item {
   id: string;
@@ -42,30 +48,6 @@ interface SplitCalculatorProps {
   exchangeRates?: Record<string, number>;
 }
 
-const mockData = {
-  title: "Enter name of the bill you want to split",
-  items: [
-    { id: "1", name: "VPS AWS bill", amount: "12", currency: "USD" },
-    { id: "2", name: "Vecel", amount: "12", currency: "PLN" },
-    {
-      id: "3",
-      name: "Cost of VPS for college project",
-      amount: "12",
-      currency: "PLN",
-    },
-  ],
-  homies: [
-    { id: "1", name: "Karol Wojtowicz", contact: "+48 123 456 789" },
-    {
-      id: "2",
-      name: "Grzegorz Kaczmarek",
-      contact: "kaczmarekgrzegorz11@gmail.com",
-    },
-    { id: "3", name: "Nikodem Biryło", contact: "" },
-    { id: "4", name: "Maciej Dorynek", contact: "" },
-  ],
-};
-
 export default function SplitCalculator({
   onNavigateToPayment,
   onSaveCalculation,
@@ -74,13 +56,13 @@ export default function SplitCalculator({
   exchangeRates = { PLN: 1, USD: 4, EUR: 4.5, GBP: 5 },
 }: SplitCalculatorProps) {
   const [billTitle, setBillTitle] = useState(
-    initialData?.title || mockData.title,
+    initialData?.title || "The bill",
   );
   const [items, setItems] = useState<Item[]>(
-    initialData?.items || mockData.items,
+    initialData?.items || [],
   );
   const [homies, setHomies] = useState<Homie[]>(
-    initialData?.homies || mockData.homies,
+    initialData?.homies || [],
   );
   const [isCalculated, setIsCalculated] = useState(false);
   const [calculationResult, setCalculationResult] = useState<{
@@ -92,6 +74,13 @@ export default function SplitCalculator({
     setItems([
       ...items,
       { id: Date.now().toString(), name: "", amount: "", currency: "PLN" },
+    ]);
+  };
+
+  const addHomie = () => {
+    setHomies([
+      ...homies,
+      { id: Date.now().toString(), name: "", contact: "" },
     ]);
   };
 
@@ -142,7 +131,7 @@ export default function SplitCalculator({
     // Save to history
     if (onSaveCalculation) {
       onSaveCalculation({
-        title: billTitle,
+        title: billTitle ?? "The bill",
         items: [...items],
         homies: [...homies],
         total,
@@ -150,16 +139,46 @@ export default function SplitCalculator({
     }
   };
 
-  const handleShare = () => {
-    /**
-     * TODO: Connect with BE
-     * Upload final calculation
-     */
-    const shareableLink = `${window.location.origin}/split/${Date.now()}`;
-    navigator.clipboard.writeText(shareableLink);
-    toast.success("Skopiowano link", {
-      duration: 3000,
-    });
+  const handleShare = async () => {
+    const totalInMainCurrency = items.reduce((sum, item) => {
+      const amount = parseFloat(item.amount) || 0;
+      const rate = exchangeRates[item.currency] || 1;
+      return sum + amount * rate;
+    }, 0);
+
+    const homiesWithNames = homies.filter((h) => h.name.trim() !== "");
+    const percentage = 100 / homiesWithNames.length;
+
+    const users: UserPaymentInputDto[] = homiesWithNames.map((homie) => ({
+      userId: homie.id,
+      userName: homie.name,
+      userEmail: homie.contact, // Assuming contact is email for now
+      percentage: percentage,
+      amount: null,
+    }));
+
+    const requestData: CreateSplitPaymentRequestDto = {
+      totalAmount: totalInMainCurrency,
+      currency: mainCurrency,
+      splitType: SplitType.Percentage,
+      description: billTitle,
+      users: users,
+    };
+
+    try {
+      const result = await createSplitPayment(requestData);
+      if (result.paymentUrl) {
+        navigator.clipboard.writeText(result.paymentUrl);
+        toast.success("Skopiowano link do płatności", {
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      toast.error("Wystąpił błąd podczas tworzenia podziału płatności", {
+        duration: 3000,
+      });
+      console.error(error);
+    }
   };
 
   const handlePay = () => {
@@ -181,6 +200,7 @@ export default function SplitCalculator({
           <div className="relative box-border flex w-full content-stretch items-center gap-2.5 p-2.5">
             <input
               type="text"
+              placeholder="Enter split title"
               value={billTitle}
               onChange={(e) => setBillTitle(e.target.value)}
               className="w-full bg-transparent font-['Roboto_Flex:Regular',sans-serif]  leading-[normal] font-normal text-2xl text-black not-italic outline-none"
@@ -212,16 +232,10 @@ export default function SplitCalculator({
             </div>
           ))}
           {/* Add Item Row */}
-          <div className="relative flex w-full shrink-0 content-stretch items-center gap-4">
-            <div className="relative box-border flex w-[492px] shrink-0 content-stretch items-center gap-2.5 rounded-lg p-[10px]">
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 rounded-xl border border-solid border-black"
-              />
-              <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif] font-normal text-nowrap whitespace-pre text-[rgba(0,0,0,0.5)] not-italic">
+          <div className="relative flex w-full shrink-0 content-stretch items-center gap-4 justify-between">
+              <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif] font-normal text-nowrap whitespace-pre text-[rgba(0,0,0,0.5)] not-italic bg-slate-200 w-full rounded-lg p-2">
                 Enter more items
               </p>
-            </div>
             <AddButton onClick={addItem} />
           </div>
         </div>
@@ -244,6 +258,15 @@ export default function SplitCalculator({
               }
             />
           ))}
+          {/* Add Homie Row */}
+          <div className="relative flex w-full shrink-0 content-stretch items-center gap-4">
+          <div className="relative flex w-full shrink-0 content-stretch items-center gap-4 justify-between">
+              <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif] font-normal text-nowrap whitespace-pre text-[rgba(0,0,0,0.5)] not-italic bg-slate-200 w-full rounded-lg p-2">
+                Enter more homies
+              </p>
+            </div>
+            <AddButton onClick={addHomie} />
+          </div>
         </div>
       </div>
 
@@ -255,7 +278,7 @@ export default function SplitCalculator({
             className="pointer-events-none absolute inset-0 rounded-xl border border-solid border-black"
           />
           <div className="flex size-full flex-row items-center">
-            <div className="relative box-border flex w-full content-stretch items-center justify-between p-[10px]">
+            <div className="relative box-border flex w-full content-stretch items-center justify-between p-2">
               <div className="relative flex shrink-0 content-stretch items-center justify-center gap-2.5">
                 <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-[#57cbab] not-italic">
                   Suma
@@ -267,7 +290,9 @@ export default function SplitCalculator({
                 </p>
                 <button
                   onClick={calculateSplit}
-                  className="relative box-border flex shrink-0 content-stretch items-center justify-center gap-2.5 rounded-lg bg-[#57cbab] px-[28px] py-[10px] transition-colors hover:bg-[#48b89a]"
+                  disabled={items.length === 0 || homies.length === 0}
+                  className="relative box-border flex shrink-0 content-stretch items-center justify-center gap-[10px] rounded-[8px] bg-[#57cbab] px-[28px] py-[10px] transition-colors hover:bg-[#48b89a] disabled:bg-gray-400"
+                  title={items.length === 0 || homies.length === 0 ? "Add at least one item and one homie to calculate the split" : ""}
                 >
                   <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-black not-italic">
                     Oblicz
