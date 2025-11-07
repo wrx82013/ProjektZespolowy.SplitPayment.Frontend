@@ -55,36 +55,34 @@ export default function CalculationResults({
 }: CalculationResultsProps) {
   return (
     <div className="relative flex shrink-0 flex-col content-stretch items-end gap-[24px]">
-      {/* Summary bar */}
-      <div className="relative box-border flex w-[611px] shrink-0 content-stretch items-center justify-between rounded-[8px] bg-black p-[10px]">
+      <div className="relative box-border flex w-[611px] shrink-0 content-stretch items-center justify-between rounded-lg bg-gray-900 p-[10px]">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-[8px] border border-solid border-black"
+          className="pointer-events-none absolute inset-0 rounded-lg border border-solid border-gray-900"
         />
-        <div className="relative flex shrink-0 content-stretch items-center justify-center gap-[10px]">
-          <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-[#57cbab] not-italic">
+        <div className="relative flex shrink-0 content-stretch items-center justify-center gap-2.5">
+          <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-custom-green not-italic">
             Suma
           </p>
         </div>
         <div className="relative flex w-[526px] shrink-0 content-stretch items-center justify-end gap-[32px]">
-          <p className="relative w-[391px] shrink-0 text-right font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-[#57cbab] not-italic">
+          <p className="relative w-[391px] shrink-0 text-right font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-custom-green not-italic">
             {total}
           </p>
-          <div className="relative box-border flex shrink-0 content-stretch items-center justify-center gap-[10px] rounded-[8px] bg-[#34ad8c] px-[28px] py-[10px]">
-            <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-black not-italic">
+          <div className="relative box-border flex shrink-0 content-stretch items-center justify-center gap-2.5 rounded-lg bg-custom-green-dark px-[28px] py-[10px]">
+            <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-gray-900 not-italic">
               Policzono
             </p>
           </div>
         </div>
       </div>
 
-      {/* Split details */}
-      <div className="relative box-border flex w-[613px] shrink-0 flex-col content-stretch items-start gap-[10px] bg-black px-[19px] py-[24px]">
+      <div className="relative box-border flex w-[613px] shrink-0 flex-col content-stretch items-start gap-2.5 bg-gray-900 px-[19px] py-[24px]">
         <div className="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[17px]">
-          <p className="relative w-full shrink-0 font-['Roboto_Flex:Bold',sans-serif] text-[24px] leading-[normal] font-bold text-[#57cbab] not-italic">
+          <p className="relative w-full shrink-0 font-['Roboto_Flex:Bold',sans-serif] text-[24px] leading-[normal] font-bold text-custom-green not-italic">
             Do podziału : {total}
           </p>
-          <div className="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-[#57cbab] not-italic">
+          <div className="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-custom-green not-italic">
             {splits.map((split, index) => (
               <p key={index} className="relative w-full shrink-0">
                 {split.name}: {split.amount}
@@ -95,24 +93,24 @@ export default function CalculationResults({
       </div>
 
       {/* Action buttons */}
-      <div className="relative box-border flex w-[611px] shrink-0 content-stretch items-center justify-end gap-[10px] rounded-[8px] bg-black p-[10px]">
+      <div className="relative box-border flex w-[611px] shrink-0 content-stretch items-center justify-end gap-2.5 rounded-lg bg-gray-900 p-[10px]">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-[8px] border border-solid border-black"
+          className="pointer-events-none absolute inset-0 rounded-lg border border-solid border-gray-900"
         />
         <button
           onClick={onPay}
-          className="hover:bg-opacity-10 relative box-border flex shrink-0 content-stretch items-center justify-center gap-[10px] rounded-[8px] border border-[#34ad8c] px-[28px] py-[10px] transition-colors hover:bg-[#34ad8c]"
+          className="hover:bg-opacity-10 relative box-border flex shrink-0 content-stretch items-center justify-center gap-2.5 rounded-lg border border-custom-green-dark px-[28px] py-[10px] transition-colors hover:bg-custom-green-dark"
         >
-          <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-[#34ad8c] not-italic">
+          <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-custom-green-dark not-italic">
             Zapłać
           </p>
         </button>
         <button
           onClick={onShare}
-          className="relative box-border flex shrink-0 content-stretch items-center justify-center gap-[10px] rounded-[8px] bg-[#34ad8c] px-[28px] py-[10px] transition-colors hover:bg-[#2d9679]"
+          className="relative box-border flex shrink-0 content-stretch items-center justify-center gap-2.5 rounded-lg bg-custom-green-dark px-[28px] py-[10px] transition-colors hover:bg-custom-green-darker"
         >
-          <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-black not-italic">
+          <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-gray-900 not-italic">
             Udostępnij
           </p>
           <CopyIcon />

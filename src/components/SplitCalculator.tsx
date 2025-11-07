@@ -195,8 +195,8 @@ export default function SplitCalculator({
       </div>
 
       {/* Bill Title Input */}
-      <div className="relative w-full shrink-0 rounded-2">
-        <div className="flex size-full flex-row items-center rounded-2">
+      <div className="relative w-full shrink-0 rounded-lg">
+        <div className="flex size-full flex-row items-center rounded-lg">
           <div className="relative box-border flex w-full content-stretch items-center gap-2.5 p-2.5">
             <input
               type="text"

@@ -9,11 +9,11 @@ export default function History() {
     useAppContext();
   const router = useRouter();
 
-  const handleNavigateToSplit = () => {
-    router.push("/calculator");
-  };
+  // const handleNavigateToSplit = () => {
+  //   router.push("/calculator");
+  // };
 
-  const handleEdit = (calculation) => {
+  const handleEdit = (calculation: any) => {
     handleEditCalculation(calculation);
     router.push("/calculator");
   };
@@ -23,7 +23,7 @@ export default function History() {
       calculations={calculations}
       onEdit={handleEdit}
       onDelete={handleDeleteCalculation}
-      onNavigateToSplit={handleNavigateToSplit}
+      // onNavigateToSplit={handleNavigateToSplit}
     />
   );
 }

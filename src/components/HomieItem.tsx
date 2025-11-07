@@ -33,11 +33,11 @@ export default function HomieItem({
   onContactChange,
 }: HomieItemProps) {
   return (
-    <div className="relative flex w-full shrink-0 content-stretch items-center gap-[10px]">
-      <div className="relative box-border flex w-[304px] shrink-0 content-stretch items-center gap-[10px] rounded-[8px] p-[10px]">
+    <div className="relative flex w-full shrink-0 content-stretch items-center gap-2.5">
+      <div className="relative box-border flex w-[304px] shrink-0 content-stretch items-center gap-2.5 rounded-lg p-[10px]">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-[8px] border border-solid border-black"
+          className="pointer-events-none absolute inset-0 rounded-lg border border-solid border-black"
         />
         <input
           type="text"
@@ -47,10 +47,10 @@ export default function HomieItem({
           className="w-full bg-transparent font-['Roboto_Flex:Regular',sans-serif]  leading-[normal] font-normal text-black not-italic outline-none"
         />
       </div>
-      <div className="relative box-border flex w-[298px] shrink-0 content-stretch items-center justify-end gap-[10px] rounded-[8px] p-[10px]">
+      <div className="relative box-border flex w-[298px] shrink-0 content-stretch items-center justify-end gap-2.5 rounded-lg p-[10px]">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-[8px] border border-solid border-black"
+          className="pointer-events-none absolute inset-0 rounded-lg border border-solid border-black"
         />
         <input
           type="text"
