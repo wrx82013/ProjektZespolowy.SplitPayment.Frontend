@@ -13,6 +13,19 @@ import {
   UserPaymentInputDto,
 } from "@/types/api";
 
+interface Item {
+  id: string;
+  name: string;
+  amount: string;
+  currency: string;
+}
+
+interface Homie {
+  id: string;
+  name: string;
+  contact: string;
+}
+
 interface Split {
   name: string;
   amount: string;
@@ -22,14 +35,14 @@ interface SplitCalculatorProps {
   onNavigateToPayment: () => void;
   onSaveCalculation?: (calculation: {
     title: string;
-    items: any[];
-    homies: any[];
+    items: Item[];
+    homies: Homie[];
     total: string;
   }) => void;
   initialData?: {
     title: string;
-    items: any[];
-    homies: any[];
+    items: Item[];
+    homies: Homie[];
   };
   mainCurrency?: string;
   exchangeRates?: Record<string, number>;
@@ -45,10 +58,10 @@ export default function SplitCalculator({
   const [billTitle, setBillTitle] = useState(
     initialData?.title || "The bill",
   );
-  const [items, setItems] = useState<any[]>(
+  const [items, setItems] = useState<Item[]>(
     initialData?.items || [],
   );
-  const [homies, setHomies] = useState<any[]>(
+  const [homies, setHomies] = useState<Homie[]>(
     initialData?.homies || [],
   );
   const [isCalculated, setIsCalculated] = useState(false);
@@ -75,7 +88,7 @@ export default function SplitCalculator({
     setItems(items.filter((item) => item.id !== id));
   };
 
-  const updateItem = (id: string, field: string, value: string) => {
+  const updateItem = (id: string, field: keyof Item, value: string) => {
     setItems(
       items.map((item) =>
         item.id === id ? { ...item, [field]: value } : item,
@@ -83,7 +96,7 @@ export default function SplitCalculator({
     );
   };
 
-  const updateHomie = (id: string, field: string, value: string) => {
+  const updateHomie = (id: string, field: keyof Homie, value: string) => {
     setHomies(
       homies.map((homie) =>
         homie.id === id ? { ...homie, [field]: value } : homie,
@@ -277,7 +290,9 @@ export default function SplitCalculator({
                 </p>
                 <button
                   onClick={calculateSplit}
-                  className="relative box-border flex shrink-0 content-stretch items-center justify-center gap-[10px] rounded-[8px] bg-[#57cbab] px-[28px] py-[10px] transition-colors hover:bg-[#48b89a]"
+                  disabled={items.length === 0 || homies.length === 0}
+                  className="relative box-border flex shrink-0 content-stretch items-center justify-center gap-[10px] rounded-[8px] bg-[#57cbab] px-[28px] py-[10px] transition-colors hover:bg-[#48b89a] disabled:bg-gray-400"
+                  title={items.length === 0 || homies.length === 0 ? "Add at least one item and one homie to calculate the split" : ""}
                 >
                   <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-black not-italic">
                     Oblicz
