@@ -13,7 +13,6 @@ import {
   SplitType,
   UserPaymentInputDto,
 } from "@/types/api";
-import DeleteButton from "./DeleteButton";
 
 interface Item {
   id: string;
@@ -26,7 +25,7 @@ interface Homie {
   id: string;
   name: string;
   percentage: string;
-  userEmail?: string;
+  userEmail: string;
 }
 
 export default function SplitCalculator() {
@@ -44,7 +43,8 @@ export default function SplitCalculator() {
 
   const totalInMainCurrency = items.reduce((sum, item) => {
     const amount = parseFloat(item.amount) || 0;
-    const rate = exchangeRates[item.currency as "PLN" | "USD" | "EUR" | "GBP"] || 1;
+    const rate =
+      exchangeRates[item.currency as "PLN" | "USD" | "EUR" | "GBP"] || 1;
     return sum + amount * rate;
   }, 0);
 
@@ -83,7 +83,7 @@ export default function SplitCalculator() {
     const newHomieId = Date.now().toString();
     const newHomiesList = [
       ...homies,
-      { id: newHomieId, name: "", percentage: "" },
+      { id: newHomieId, name: "", percentage: "", userEmail: "" },
     ];
     const recalculatedHomies = recalculatePercentages(
       newHomiesList,
@@ -132,6 +132,7 @@ export default function SplitCalculator() {
 
   const calculateSplit = async () => {
     const users: UserPaymentInputDto[] = homies.map((homie) => ({
+      userId: homie.id,
       userName: homie.name,
       userEmail: homie.userEmail,
       percentage: parseFloat(homie.percentage) || null,
@@ -193,11 +194,11 @@ export default function SplitCalculator() {
       </div>
 
       {/* Items Section */}
-      <div className="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[15px]">
-        <p className="relative w-full shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-[24px] leading-[normal] font-normal text-black not-italic">
+      <div className="flex w-full shrink-0 flex-col content-stretch items-start gap-3.5">
+        <p className="w-full shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-2xl text-black">
           Items
         </p>
-        <div className="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px]">
+        <div className="flex w-full shrink-0 flex-col content-stretch items-start gap-3">
           {items.map((item) => (
             <div key={item.id} className="flex w-full items-center gap-2">
               <BillItem
@@ -205,9 +206,7 @@ export default function SplitCalculator() {
                 amount={item.amount}
                 currency={item.currency}
                 onNameChange={(value) => updateItem(item.id, "name", value)}
-                onAmountChange={(value) =>
-                  updateItem(item.id, "amount", value)
-                }
+                onAmountChange={(value) => updateItem(item.id, "amount", value)}
                 onCurrencyChange={(value) =>
                   updateItem(item.id, "currency", value)
                 }
@@ -217,8 +216,8 @@ export default function SplitCalculator() {
             </div>
           ))}
           {/* Add Item Row */}
-          <div className="relative flex w-full shrink-0 content-stretch items-center gap-4 justify-between">
-            <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif] font-normal text-nowrap whitespace-pre text-[rgba(0,0,0,0.5)] not-italic bg-slate-200 w-full rounded-lg p-2">
+          <div className="flex w-full shrink-0 content-stretch items-center gap-4 justify-between">
+            <p className="shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-nowrap whitespace-pre not-italic bg-slate-200 w-full rounded-lg p-2">
               Enter more items
             </p>
             <AddButton onClick={addItem} data-testid="add-button-items" />
@@ -227,33 +226,35 @@ export default function SplitCalculator() {
       </div>
 
       {/* Homies Section */}
-      <div className="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[15px]">
-        <p className="relative w-full shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-[24px] leading-[normal] font-normal text-black not-italic">
+      <div className="flex w-full shrink-0 flex-col content-stretch items-start gap-3.5">
+        <p className="w-full shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-2xl text-black">
           Homies
         </p>
-        <div className="relative flex w-full shrink-0 flex-col content-stretch items-start gap-3">
+        <div className="flex w-full shrink-0 flex-col content-stretch items-start gap-3">
           {homies.map((homie) => (
             <div key={homie.id} className="flex w-full items-center gap-2">
               <HomieItem
                 name={homie.name}
+                email={homie.userEmail}
                 percentage={homie.percentage}
                 onNameChange={(value) => updateHomie(homie.id, "name", value)}
+                onEmailChange={(value) =>
+                  updateHomie(homie.id, "userEmail", value)
+                }
                 onPercentageChange={(value) =>
                   updateHomie(homie.id, "percentage", value)
                 }
                 placeholder={
-                  homies.length > 0
-                    ? (100 / homies.length).toFixed(2)
-                    : "100"
+                  homies.length > 0 ? (100 / homies.length).toFixed(2) : "100"
                 }
+                removeHomie={() => removeHomie(homie.id)}
               />
-              <DeleteButton onClick={() => removeHomie(homie.id)} />
             </div>
           ))}
           {/* Add Homie Row */}
-          <div className="relative flex w-full shrink-0 content-stretch items-center gap-4">
-            <div className="relative flex w-full shrink-0 content-stretch items-center gap-4 justify-between">
-              <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif] font-normal text-nowrap whitespace-pre text-[rgba(0,0,0,0.5)] not-italic bg-slate-200 w-full rounded-lg p-2">
+          <div className="flex w-full shrink-0 content-stretch items-center gap-4">
+            <div className="flex w-full shrink-0 content-stretch items-center gap-4 justify-between">
+              <p className="shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-nowrap whitespace-pre bg-slate-200 w-full rounded-lg p-2">
                 Enter more homies
               </p>
             </div>
@@ -305,9 +306,7 @@ export default function SplitCalculator() {
             splits={
               calculationResult.userPayments?.map((p) => ({
                 name: p.userName || "Unnamed",
-                amount: `${p.amount.toFixed(2)} ${
-                  calculationResult.currency
-                }`,
+                amount: `${p.amount.toFixed(2)} ${calculationResult.currency}`,
               })) || []
             }
             onShare={() => {

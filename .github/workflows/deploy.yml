@@ -3,9 +3,9 @@ name: Build and Deploy (develop only)
 on:
   push:
     branches:
-      - 'dev/**'          # tylko branże developerskie
-      - 'master'
-  workflow_dispatch: {}   # opcjonalne ręczne odpalanie (również deploy na dev)
+      - "dev/**"
+      - "master"
+  workflow_dispatch: {} # optional manual trigger (deploy dev too)
 
 jobs:
   build:
