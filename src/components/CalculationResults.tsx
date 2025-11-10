@@ -103,9 +103,9 @@ export default function CalculationResults({
         <button
           onClick={handlePayClick}
           disabled={!paymentUrl}
-          className="flex items-center justify-center gap-2.5 bg-custom-green px-7 py-2.5 rounded-lg border border-solid border-gray-900 transition-colors hover:bg-custom-green-hover disabled:bg-gray-400"
+          className="flex items-center justify-center gap-2.5 border-custom-green px-7 py-2.5 rounded-lg border border-solid bg-gray-900 transition-colors hover:bg-gray-400 disabled:bg-custom-green-dark"
         >
-          <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold text-nowrap whitespace-pre text-black">
+          <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold text-nowrap whitespace-pre text-custom-green">
             Zapłać
           </p>
           <CopyIcon />
