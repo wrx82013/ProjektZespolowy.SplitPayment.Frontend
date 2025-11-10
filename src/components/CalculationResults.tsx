@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "@/lib/api";
+
 interface Split {
   name: string;
   amount: string;
@@ -57,7 +59,6 @@ export default function CalculationResults({
     if (paymentUrl) {
       const url = new URL(paymentUrl);
       const endpoint = url.pathname;
-      const API_BASE_URL = url.origin; // Extract base URL from paymentUrl
       window.open(`${API_BASE_URL}${endpoint}`, "_blank");
     }
   };

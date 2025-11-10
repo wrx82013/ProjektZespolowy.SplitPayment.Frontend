@@ -307,10 +307,19 @@ export default function SplitCalculator() {
             }
             onShare={() => {
               if (calculationResult.paymentUrl) {
-                navigator.clipboard.writeText(calculationResult.paymentUrl);
-                toast.success("Skopiowano link do płatności", {
-                  duration: 3000,
-                });
+                navigator.permissions.query({ name: "clipboard-write" as any }).then((result) => {
+                if (result.state === "granted" || result.state === "prompt") {
+                  navigator.clipboard.writeText(calculationResult.paymentUrl ?? "");
+                  toast.success("Skopiowano link do płatności", {
+                    duration: 3000,
+                  });
+                } else {
+                  toast.error("Nie udało się skopiować linku do płatności", {
+                    duration: 3000,
+                  });
+                }
+              });
+
               }
             }}
             paymentUrl={calculationResult.paymentUrl}
