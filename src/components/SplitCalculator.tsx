@@ -44,7 +44,7 @@ export default function SplitCalculator() {
 
   const totalInMainCurrency = items.reduce((sum, item) => {
     const amount = parseFloat(item.amount) || 0;
-    const rate = exchangeRates[item.currency] || 1;
+    const rate = exchangeRates[item.currency as "PLN" | "USD" | "EUR" | "GBP"] || 1;
     return sum + amount * rate;
   }, 0);
 
