@@ -3,7 +3,7 @@ import {
   SplitPaymentResponseDto,
 } from "../types/api";
 
-export const API_BASE_URL = "http://3.71.231.81";
+export const API_BASE_URL = "https://splitpayhomie.pl";
 
 export const createSplitPayment = async (
   data: CreateSplitPaymentRequestDto,
