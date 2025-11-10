@@ -108,7 +108,6 @@ export default function CalculationResults({
           <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold text-nowrap whitespace-pre text-custom-green">
             Zapłać
           </p>
-          <CopyIcon />
         </button>
         <button
           onClick={onShare}
