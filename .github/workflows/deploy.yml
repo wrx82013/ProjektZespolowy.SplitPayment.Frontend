@@ -47,7 +47,7 @@ jobs:
     needs: build
     environment:
       name: development
-      url: https://url_amazon/apka
+      url: http://3.71.231.81/calculator
     steps:
       - name: Deploy to Development VM
         uses: appleboy/ssh-action@v1.0.3

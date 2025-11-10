@@ -19,21 +19,7 @@ export default function CalculatorPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <SplitCalculator
-        onNavigateToPayment={handleNavigateToPayment}
-        onSaveCalculation={handleSaveCalculation}
-        initialData={
-          editingCalculation
-            ? {
-                title: editingCalculation.title,
-                items: editingCalculation.items,
-                homies: editingCalculation.homies,
-              }
-            : undefined
-        }
-        mainCurrency={settings.mainCurrency}
-        exchangeRates={settings.exchangeRates}
-      />
+      <SplitCalculator />
     </div>
   );
 }
