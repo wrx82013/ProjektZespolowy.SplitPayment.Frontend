@@ -221,7 +221,7 @@ export default function SplitCalculator() {
             <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif] font-normal text-nowrap whitespace-pre text-[rgba(0,0,0,0.5)] not-italic bg-slate-200 w-full rounded-lg p-2">
               Enter more items
             </p>
-            <AddButton onClick={addItem} />
+            <AddButton onClick={addItem} data-testid="add-button-items" />
           </div>
         </div>
       </div>
@@ -257,7 +257,7 @@ export default function SplitCalculator() {
                 Enter more homies
               </p>
             </div>
-            <AddButton onClick={addHomie} />
+            <AddButton onClick={addHomie} data-testid="add-button-homies" />
           </div>
         </div>
       </div>
