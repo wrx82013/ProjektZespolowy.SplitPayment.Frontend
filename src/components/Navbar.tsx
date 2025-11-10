@@ -4,50 +4,104 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SplitLogo from "../../public/assets/splitpayLogo.png";
 import { LogoWordmark } from "./LogoWordmark";
+import { useState } from "react";
 
 export default function Navbar() {
   const pathname = usePathname();
-  console.log("SplitLogo", SplitLogo.src);
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div
-      className="box-border flex w-full content-stretch items-center justify-between overflow-clip bg-white px-[24px] py-[32px] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.2)]"
-      data-name="Navbar"
-    >
-      <a href="/calculator">
-        <div className="relative flex shrink-0 content-stretch items-center gap-4">
-          <div className="relative h-[79px] w-[82px] shrink-0">
-            <img
-              alt="Splitpayhomie logo"
-              className="block size-full max-w-none"
-              height="79"
-              src={SplitLogo.src}
-              width="82"
-            />
+    <nav className="sticky top-0 z-50 bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.2)]">
+      <div className="mx-auto flex w-full items-center justify-between px-6 py-4">
+        <a href="/calculator">
+          <div className="relative flex shrink-0 content-stretch items-center gap-4">
+            <div className="relative h-[79px] w-[82px] shrink-0">
+              <img
+                alt="Splitpayhomie logo"
+                className="block size-full max-w-none"
+                height="79"
+                src={SplitLogo.src}
+                width="82"
+              />
+            </div>
+            <LogoWordmark />
           </div>
-          <LogoWordmark />
+        </a>
+        <div className="hidden items-center gap-[35px] font-['Roboto_Flex:Regular',sans-serif] text-[28px] font-normal not-italic text-black text-nowrap md:flex">
+          <Link
+            href="/calculator"
+            className={`relative shrink-0 transition-opacity hover:opacity-80 ${pathname === "/calculator" ? "underline decoration-solid [text-underline-position:from-font]" : ""}`}
+          >
+            Split new bill
+          </Link>
+          <Link
+            href="/history"
+            className={`relative shrink-0 transition-opacity hover:opacity-80 ${pathname === "/history" ? "underline decoration-solid [text-underline-position:from-font]" : ""}`}
+          >
+            History
+          </Link>
+          <Link
+            href="/settings"
+            className={`relative shrink-0 transition-opacity hover:opacity-80 ${pathname === "/settings" ? "underline decoration-solid [text-underline-position:from-font]" : ""}`}
+          >
+            Settings
+          </Link>
         </div>
-      </a>
-      <div className="relative flex shrink-0 content-stretch items-center gap-[35px] font-['Roboto_Flex:Regular',sans-serif] text-[28px] leading-[normal] font-normal text-nowrap whitespace-pre text-black not-italic">
-        <Link
-          href="/calculator"
-          className={`relative shrink-0 transition-opacity hover:opacity-80 ${pathname === "/calculator" ? "underline decoration-solid [text-underline-position:from-font]" : ""}`}
-        >
-          Split new bill
-        </Link>
-        <Link
-          href="/history"
-          className={`relative shrink-0 transition-opacity hover:opacity-80 ${pathname === "/history" ? "underline decoration-solid [text-underline-position:from-font]" : ""}`}
-        >
-          History
-        </Link>
-        <Link
-          href="/settings"
-          className={`relative shrink-0 transition-opacity hover:opacity-80 ${pathname === "/settings" ? "underline decoration-solid [text-underline-position:from-font]" : ""}`}
-        >
-          Settings
-        </Link>
+        <div className="md:hidden">
+          <button onClick={() => setIsOpen(!isOpen)}>
+            <svg
+              className="size-8"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {isOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16m-7 6h7"
+                />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
-    </div>
+      {isOpen && (
+        <div className="bg-custom-green p-4 md:hidden">
+          <div className="flex flex-col items-center gap-4">
+            <Link
+              href="/calculator"
+              className={`relative shrink-0 transition-opacity hover:opacity-80 ${pathname === "/calculator" ? "underline decoration-solid [text-underline-position:from-font]" : ""}`}
+              onClick={() => setIsOpen(false)}
+            >
+              Split new bill
+            </Link>
+            <Link
+              href="/history"
+              className={`relative shrink-0 transition-opacity hover:opacity-80 ${pathname === "/history" ? "underline decoration-solid [text-underline-position:from-font]" : ""}`}
+              onClick={() => setIsOpen(false)}
+            >
+              History
+            </Link>
+            <Link
+              href="/settings"
+              className={`relative shrink-0 transition-opacity hover:opacity-80 ${pathname === "/settings" ? "underline decoration-solid [text-underline-position:from-font]" : ""}`}
+              onClick={() => setIsOpen(false)}
+            >
+              Settings
+            </Link>
+          </div>
+        </div>
+      )}
+    </nav>
   );
 }
