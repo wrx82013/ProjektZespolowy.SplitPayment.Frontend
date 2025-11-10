@@ -1,4 +1,3 @@
-
 import { SplitPaymentResponseDto, UserPaymentDto } from "@/types/api";
 
 interface PaymentDetailsProps {

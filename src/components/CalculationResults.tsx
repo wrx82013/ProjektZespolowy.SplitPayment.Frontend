@@ -11,7 +11,7 @@ interface CalculationResultsProps {
 
 function CopyIcon() {
   return (
-    <div className="relative size-[16px] shrink-0">
+    <div className="relative size-4 shrink-0">
       <svg
         className="block size-full"
         fill="none"
@@ -105,7 +105,7 @@ export default function CalculationResults({
           </p>
           <CopyIcon />
         </button>
-.
+        .
       </div>
     </div>
   );

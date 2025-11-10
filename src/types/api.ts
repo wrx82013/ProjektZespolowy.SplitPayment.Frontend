@@ -1,4 +1,3 @@
-
 export enum SplitType {
   Percentage = 0,
   Custom = 1,
