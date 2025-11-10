@@ -1,36 +1,17 @@
 interface HomieItemProps {
   name: string;
-  contact: string;
+  percentage: string;
   onNameChange: (value: string) => void;
-  onContactChange: (value: string) => void;
-}
-
-function DropdownIcon() {
-  return (
-    <div className="relative h-[17px] w-[21px] shrink-0">
-      <svg
-        className="block size-full"
-        fill="none"
-        preserveAspectRatio="none"
-        viewBox="0 0 21 17"
-      >
-        <g id="Frame 67">
-          <path
-            d="M3 4L11 13L19 4"
-            id="Vector 2"
-            stroke="var(--stroke-0, black)"
-          />
-        </g>
-      </svg>
-    </div>
-  );
+  onPercentageChange: (value: string) => void;
+  placeholder: string;
 }
 
 export default function HomieItem({
   name,
-  contact,
+  percentage,
   onNameChange,
-  onContactChange,
+  onPercentageChange,
+  placeholder,
 }: HomieItemProps) {
   return (
     <div className="relative flex w-full shrink-0 content-stretch items-center gap-2.5">
@@ -53,13 +34,13 @@ export default function HomieItem({
           className="pointer-events-none absolute inset-0 rounded-lg border border-solid border-black"
         />
         <input
-          type="text"
-          value={contact}
-          onChange={(e) => onContactChange(e.target.value)}
-          placeholder="Contact info"
+          type="number"
+          value={percentage}
+          onChange={(e) => onPercentageChange(e.target.value)}
+          placeholder={placeholder}
           className="flex-1 bg-transparent text-right font-['Roboto_Flex:Regular',sans-serif]  leading-[normal] font-normal text-black not-italic outline-none"
         />
-        <DropdownIcon />
+        <span className="text-black">%</span>
       </div>
     </div>
   );

@@ -6,12 +6,14 @@ import HomieItem from "./HomieItem";
 import AddButton from "./AddButton";
 import CalculationResults from "./CalculationResults";
 import { toast } from "sonner";
-import { createSplitPayment } from "@/lib/api";
+import { createSplitPayment, validateSplitPayment } from "@/lib/api";
 import {
   CreateSplitPaymentRequestDto,
+  SplitPaymentResponseDto,
   SplitType,
   UserPaymentInputDto,
 } from "@/types/api";
+import DeleteButton from "./DeleteButton";
 
 interface Item {
   id: string;
@@ -23,52 +25,52 @@ interface Item {
 interface Homie {
   id: string;
   name: string;
-  contact: string;
+  percentage: string;
+  userEmail?: string;
 }
 
-interface Split {
-  name: string;
-  amount: string;
-}
-
-interface SplitCalculatorProps {
-  onNavigateToPayment: () => void;
-  onSaveCalculation?: (calculation: {
-    title: string;
-    items: Item[];
-    homies: Homie[];
-    total: string;
-  }) => void;
-  initialData?: {
-    title: string;
-    items: Item[];
-    homies: Homie[];
-  };
-  mainCurrency?: string;
-  exchangeRates?: Record<string, number>;
-}
-
-export default function SplitCalculator({
-  onNavigateToPayment,
-  onSaveCalculation,
-  initialData,
-  mainCurrency = "PLN",
-  exchangeRates = { PLN: 1, USD: 4, EUR: 4.5, GBP: 5 },
-}: SplitCalculatorProps) {
-  const [billTitle, setBillTitle] = useState(
-    initialData?.title || "The bill",
-  );
-  const [items, setItems] = useState<Item[]>(
-    initialData?.items || [],
-  );
-  const [homies, setHomies] = useState<Homie[]>(
-    initialData?.homies || [],
-  );
+export default function SplitCalculator() {
+  const [billTitle, setBillTitle] = useState("The bill");
+  const [items, setItems] = useState<Item[]>([]);
+  const [homies, setHomies] = useState<Homie[]>([]);
   const [isCalculated, setIsCalculated] = useState(false);
-  const [calculationResult, setCalculationResult] = useState<{
-    total: string;
-    splits: Split[];
-  }>({ total: "", splits: [] });
+  const [calculationResult, setCalculationResult] =
+    useState<SplitPaymentResponseDto | null>(null);
+  const [manualPercentageOverrides, setManualPercentageOverrides] = useState(
+    new Set<string>(),
+  );
+
+  const exchangeRates = { PLN: 1, USD: 4, EUR: 4.5, GBP: 5 };
+
+  const totalInMainCurrency = items.reduce((sum, item) => {
+    const amount = parseFloat(item.amount) || 0;
+    const rate = exchangeRates[item.currency] || 1;
+    return sum + amount * rate;
+  }, 0);
+
+  const recalculatePercentages = (
+    homiesList: Homie[],
+    manualOverrides: Set<string>,
+  ) => {
+    const autoHomies = homiesList.filter((h) => !manualOverrides.has(h.id));
+    const manualHomies = homiesList.filter((h) => manualOverrides.has(h.id));
+
+    const manualPercentageSum = manualHomies.reduce(
+      (sum, h) => sum + (parseFloat(h.percentage) || 0),
+      0,
+    );
+
+    if (autoHomies.length > 0) {
+      const remainingPercentage = 100 - manualPercentageSum;
+      const autoPercentage = remainingPercentage / autoHomies.length;
+
+      autoHomies.forEach((h) => {
+        h.percentage = autoPercentage.toFixed(2);
+      });
+    }
+
+    return [...manualHomies, ...autoHomies];
+  };
 
   const addItem = () => {
     setItems([
@@ -78,14 +80,33 @@ export default function SplitCalculator({
   };
 
   const addHomie = () => {
-    setHomies([
+    const newHomieId = Date.now().toString();
+    const newHomiesList = [
       ...homies,
-      { id: Date.now().toString(), name: "", contact: "" },
-    ]);
+      { id: newHomieId, name: "", percentage: "" },
+    ];
+    const recalculatedHomies = recalculatePercentages(
+      newHomiesList,
+      manualPercentageOverrides,
+    );
+    setHomies(recalculatedHomies);
   };
 
   const removeItem = (id: string) => {
     setItems(items.filter((item) => item.id !== id));
+  };
+
+  const removeHomie = (id: string) => {
+    const newOverrides = new Set(manualPercentageOverrides);
+    newOverrides.delete(id);
+    setManualPercentageOverrides(newOverrides);
+
+    const newHomiesList = homies.filter((homie) => homie.id !== id);
+    const recalculatedHomies = recalculatePercentages(
+      newHomiesList,
+      newOverrides,
+    );
+    setHomies(recalculatedHomies);
   };
 
   const updateItem = (id: string, field: keyof Item, value: string) => {
@@ -97,6 +118,11 @@ export default function SplitCalculator({
   };
 
   const updateHomie = (id: string, field: keyof Homie, value: string) => {
+    if (field === "percentage") {
+      const newOverrides = new Set(manualPercentageOverrides);
+      newOverrides.add(id);
+      setManualPercentageOverrides(newOverrides);
+    }
     setHomies(
       homies.map((homie) =>
         homie.id === id ? { ...homie, [field]: value } : homie,
@@ -104,85 +130,42 @@ export default function SplitCalculator({
     );
   };
 
-  const calculateSplit = () => {
-    // Convert all amounts to main currency using provided exchange rates
-    const totalInMainCurrency = items.reduce((sum, item) => {
-      const amount = parseFloat(item.amount) || 0;
-      const rate = exchangeRates[item.currency] || 1;
-      return sum + amount * rate;
-    }, 0);
-
-    const homiesWithNames = homies.filter((h) => h.name.trim() !== "");
-    const perPerson = totalInMainCurrency / homiesWithNames.length;
-
-    const splits = homiesWithNames.map((homie) => ({
-      name: homie.name,
-      amount: `${perPerson.toFixed(2)} ${mainCurrency}`,
-    }));
-
-    const total = `${totalInMainCurrency.toFixed(1)} ${mainCurrency}`;
-
-    setCalculationResult({
-      total,
-      splits,
-    });
-    setIsCalculated(true);
-
-    // Save to history
-    if (onSaveCalculation) {
-      onSaveCalculation({
-        title: billTitle ?? "The bill",
-        items: [...items],
-        homies: [...homies],
-        total,
-      });
-    }
-  };
-
-  const handleShare = async () => {
-    const totalInMainCurrency = items.reduce((sum, item) => {
-      const amount = parseFloat(item.amount) || 0;
-      const rate = exchangeRates[item.currency] || 1;
-      return sum + amount * rate;
-    }, 0);
-
-    const homiesWithNames = homies.filter((h) => h.name.trim() !== "");
-    const percentage = 100 / homiesWithNames.length;
-
-    const users: UserPaymentInputDto[] = homiesWithNames.map((homie) => ({
-      userId: homie.id,
+  const calculateSplit = async () => {
+    const users: UserPaymentInputDto[] = homies.map((homie) => ({
       userName: homie.name,
-      userEmail: homie.contact, // Assuming contact is email for now
-      percentage: percentage,
-      amount: null,
+      userEmail: homie.userEmail,
+      percentage: parseFloat(homie.percentage) || null,
     }));
 
     const requestData: CreateSplitPaymentRequestDto = {
       totalAmount: totalInMainCurrency,
-      currency: mainCurrency,
+      currency: "PLN",
       splitType: SplitType.Percentage,
       description: billTitle,
       users: users,
     };
 
     try {
-      const result = await createSplitPayment(requestData);
-      if (result.paymentUrl) {
-        navigator.clipboard.writeText(result.paymentUrl);
-        toast.success("Skopiowano link do płatności", {
-          duration: 3000,
-        });
-      }
-    } catch (error) {
-      toast.error("Wystąpił błąd podczas tworzenia podziału płatności", {
+      await validateSplitPayment(requestData);
+    } catch (error: any) {
+      toast.error(error.message, {
         duration: 3000,
       });
-      console.error(error);
+      return;
     }
-  };
 
-  const handlePay = () => {
-    onNavigateToPayment();
+    try {
+      const result = await createSplitPayment(requestData);
+      setCalculationResult(result);
+      setIsCalculated(true);
+      toast.success("Calculation successful!", {
+        duration: 3000,
+      });
+    } catch (error: any) {
+      toast.error(error.message, {
+        duration: 3000,
+      });
+    }
   };
 
   return (
@@ -222,7 +205,9 @@ export default function SplitCalculator({
                 amount={item.amount}
                 currency={item.currency}
                 onNameChange={(value) => updateItem(item.id, "name", value)}
-                onAmountChange={(value) => updateItem(item.id, "amount", value)}
+                onAmountChange={(value) =>
+                  updateItem(item.id, "amount", value)
+                }
                 onCurrencyChange={(value) =>
                   updateItem(item.id, "currency", value)
                 }
@@ -233,10 +218,10 @@ export default function SplitCalculator({
           ))}
           {/* Add Item Row */}
           <div className="relative flex w-full shrink-0 content-stretch items-center gap-4 justify-between">
-              <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif] font-normal text-nowrap whitespace-pre text-[rgba(0,0,0,0.5)] not-italic bg-slate-200 w-full rounded-lg p-2">
-                Enter more items
-              </p>
-            <AddButton onClick={addItem} />
+            <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif] font-normal text-nowrap whitespace-pre text-[rgba(0,0,0,0.5)] not-italic bg-slate-200 w-full rounded-lg p-2">
+              Enter more items
+            </p>
+            <AddButton onClick={addItem} data-testid="add-button-items" />
           </div>
         </div>
       </div>
@@ -248,24 +233,31 @@ export default function SplitCalculator({
         </p>
         <div className="relative flex w-full shrink-0 flex-col content-stretch items-start gap-3">
           {homies.map((homie) => (
-            <HomieItem
-              key={homie.id}
-              name={homie.name}
-              contact={homie.contact}
-              onNameChange={(value) => updateHomie(homie.id, "name", value)}
-              onContactChange={(value) =>
-                updateHomie(homie.id, "contact", value)
-              }
-            />
+            <div key={homie.id} className="flex w-full items-center gap-2">
+              <HomieItem
+                name={homie.name}
+                percentage={homie.percentage}
+                onNameChange={(value) => updateHomie(homie.id, "name", value)}
+                onPercentageChange={(value) =>
+                  updateHomie(homie.id, "percentage", value)
+                }
+                placeholder={
+                  homies.length > 0
+                    ? (100 / homies.length).toFixed(2)
+                    : "100"
+                }
+              />
+              <DeleteButton onClick={() => removeHomie(homie.id)} />
+            </div>
           ))}
           {/* Add Homie Row */}
           <div className="relative flex w-full shrink-0 content-stretch items-center gap-4">
-          <div className="relative flex w-full shrink-0 content-stretch items-center gap-4 justify-between">
+            <div className="relative flex w-full shrink-0 content-stretch items-center gap-4 justify-between">
               <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif] font-normal text-nowrap whitespace-pre text-[rgba(0,0,0,0.5)] not-italic bg-slate-200 w-full rounded-lg p-2">
                 Enter more homies
               </p>
             </div>
-            <AddButton onClick={addHomie} />
+            <AddButton onClick={addHomie} data-testid="add-button-homies" />
           </div>
         </div>
       </div>
@@ -286,13 +278,17 @@ export default function SplitCalculator({
               </div>
               <div className="relative flex shrink-0 content-stretch items-center justify-end gap-[32px]">
                 <p className="relative shrink-0 text-right font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-[#57cbab] not-italic">
-                  -- PLN
+                  {totalInMainCurrency.toFixed(2) || "--"} PLN
                 </p>
                 <button
                   onClick={calculateSplit}
                   disabled={items.length === 0 || homies.length === 0}
                   className="relative box-border flex shrink-0 content-stretch items-center justify-center gap-[10px] rounded-[8px] bg-[#57cbab] px-[28px] py-[10px] transition-colors hover:bg-[#48b89a] disabled:bg-gray-400"
-                  title={items.length === 0 || homies.length === 0 ? "Add at least one item and one homie to calculate the split" : ""}
+                  title={
+                    items.length === 0 || homies.length === 0
+                      ? "Add at least one item and one homie to calculate the split"
+                      : ""
+                  }
                 >
                   <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-black not-italic">
                     Oblicz
@@ -303,12 +299,27 @@ export default function SplitCalculator({
           </div>
         </div>
       ) : (
-        <CalculationResults
-          total={calculationResult.total}
-          splits={calculationResult.splits}
-          onShare={handleShare}
-          onPay={handlePay}
-        />
+        calculationResult && (
+          <CalculationResults
+            total={`${calculationResult.totalAmount} ${calculationResult.currency}`}
+            splits={
+              calculationResult.userPayments?.map((p) => ({
+                name: p.userName || "Unnamed",
+                amount: `${p.amount.toFixed(2)} ${
+                  calculationResult.currency
+                }`,
+              })) || []
+            }
+            onShare={() => {
+              if (calculationResult.paymentUrl) {
+                navigator.clipboard.writeText(calculationResult.paymentUrl);
+                toast.success("Skopiowano link do płatności", {
+                  duration: 3000,
+                });
+              }
+            }}
+          />
+        )
       )}
     </div>
   );

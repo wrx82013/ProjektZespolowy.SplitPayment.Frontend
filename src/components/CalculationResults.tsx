@@ -7,7 +7,6 @@ interface CalculationResultsProps {
   total: string;
   splits: Split[];
   onShare: () => void;
-  onPay: () => void;
 }
 
 function CopyIcon() {
@@ -51,7 +50,6 @@ export default function CalculationResults({
   total,
   splits,
   onShare,
-  onPay,
 }: CalculationResultsProps) {
   return (
     <div className="relative flex shrink-0 flex-col content-stretch items-end gap-[24px]">
@@ -99,14 +97,6 @@ export default function CalculationResults({
           className="pointer-events-none absolute inset-0 rounded-lg border border-solid border-gray-900"
         />
         <button
-          onClick={onPay}
-          className="hover:bg-opacity-10 relative box-border flex shrink-0 content-stretch items-center justify-center gap-2.5 rounded-lg border border-custom-green-dark px-[28px] py-[10px] transition-colors hover:bg-custom-green-dark"
-        >
-          <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-custom-green-dark not-italic">
-            Zapłać
-          </p>
-        </button>
-        <button
           onClick={onShare}
           className="relative box-border flex shrink-0 content-stretch items-center justify-center gap-2.5 rounded-lg bg-custom-green-dark px-[28px] py-[10px] transition-colors hover:bg-custom-green-darker"
         >
@@ -115,6 +105,7 @@ export default function CalculationResults({
           </p>
           <CopyIcon />
         </button>
+.
       </div>
     </div>
   );

@@ -31,7 +31,7 @@ export const getSplitPayment = async (id: string): Promise<SplitPaymentResponseD
   return response.json();
 };
 
-export const validateSplitPayment = async (data: CreateSplitPaymentRequestDto): Promise<Response> => {
+export const validateSplitPayment = async (data: CreateSplitPaymentRequestDto): Promise<void> => {
   const response = await fetch(`${API_BASE_URL}/api/SplitPayment/validate`, {
     method: 'POST',
     headers: {
@@ -40,5 +40,8 @@ export const validateSplitPayment = async (data: CreateSplitPaymentRequestDto): 
     body: JSON.stringify(data),
   });
 
-  return response;
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.errors.join(', ') || 'Validation failed');
+  }
 };

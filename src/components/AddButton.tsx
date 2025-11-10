@@ -1,11 +1,16 @@
 interface AddButtonProps {
   onClick: () => void;
+  "data-testid"?: string;
 }
 
-export default function AddButton({ onClick }: AddButtonProps) {
+export default function AddButton({
+  onClick,
+  "data-testid": dataTestId,
+}: AddButtonProps) {
   return (
     <button
       onClick={onClick}
+      data-testid={dataTestId || "add-button"}
       className="h-8 w-24 shrink-0 rounded-lg bg-custom-green cursor-pointer transition-colors hover:bg-custom-green-dark flex items-center justify-center"
     >
       <svg
