@@ -23,11 +23,7 @@ export default function BillItem({
 }: BillItemProps) {
   return (
     <div className="flex w-full shrink-0 content-stretch items-center gap-4">
-      <div className="relative box-border flex w-[492px] shrink-0 content-stretch items-center gap-2.5 rounded-xl p-2.5">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-xl border border-solid border-black"
-        />
+      <div className="rounded-xl border border-solid border-black box-border flex w-[492px] shrink-0 content-stretch items-center gap-2.5 p-2.5">
         <input
           type="text"
           value={name}
@@ -36,11 +32,7 @@ export default function BillItem({
           className="w-full bg-transparent font-['Roboto_Flex:Regular',sans-serif] font-normal text-black not-italic outline-none"
         />
       </div>
-      <div className="relative box-border flex w-[104px] shrink-0 content-stretch items-center justify-between rounded-xl p-2.5">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-xl border border-solid border-black"
-        />
+      <div className="relative box-border flex w-[104px] shrink-0 content-stretch items-center justify-between rounded-xl p-2.5 border border-solid border-black">
         <input
           type="number"
           value={amount}

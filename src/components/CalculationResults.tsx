@@ -7,11 +7,12 @@ interface CalculationResultsProps {
   total: string;
   splits: Split[];
   onShare: () => void;
+  paymentUrl?: string | null;
 }
 
 function CopyIcon() {
   return (
-    <div className="relative size-4 shrink-0">
+    <div className="size-4 shrink-0">
       <svg
         className="block size-full"
         fill="none"
@@ -50,39 +51,45 @@ export default function CalculationResults({
   total,
   splits,
   onShare,
+  paymentUrl,
 }: CalculationResultsProps) {
+  const handlePayClick = () => {
+    if (paymentUrl) {
+      const url = new URL(paymentUrl);
+      const endpoint = url.pathname;
+      const API_BASE_URL = url.origin; // Extract base URL from paymentUrl
+      window.open(`${API_BASE_URL}${endpoint}`, "_blank");
+    }
+  };
+
   return (
-    <div className="relative flex shrink-0 flex-col content-stretch items-end gap-[24px]">
-      <div className="relative box-border flex w-[611px] shrink-0 content-stretch items-center justify-between rounded-lg bg-gray-900 p-[10px]">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-lg border border-solid border-gray-900"
-        />
-        <div className="relative flex shrink-0 content-stretch items-center justify-center gap-2.5">
-          <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-custom-green not-italic">
+    <div className="flex flex-col items-end gap-6">
+      <div className="flex w-2xl items-center justify-between rounded-lg bg-gray-900 p-2.5 border border-solid border-gray-900">
+        <div className="flex items-center justify-center gap-2.5">
+          <p className="font-['Roboto_Flex:Bold',sans-serif]font-bold text-nowrap whitespace-pre text-custom-green">
             Suma
           </p>
         </div>
-        <div className="relative flex w-[526px] shrink-0 content-stretch items-center justify-end gap-[32px]">
-          <p className="relative w-[391px] shrink-0 text-right font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-custom-green not-italic">
+        <div className="flex w-[526px] items-center justify-end gap-8">
+          <p className="w-[391px] text-right font-['Roboto_Flex:Bold',sans-serif] font-bold text-custom-green">
             {total}
           </p>
-          <div className="relative box-border flex shrink-0 content-stretch items-center justify-center gap-2.5 rounded-lg bg-custom-green-dark px-[28px] py-[10px]">
-            <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-gray-900 not-italic">
+          <div className="flex items-center justify-center gap-2.5 rounded-lg bg-custom-green-dark px-7 py-2.5">
+            <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold text-nowrap whitespace-pre text-gray-900">
               Policzono
             </p>
           </div>
         </div>
       </div>
 
-      <div className="relative box-border flex w-[613px] shrink-0 flex-col content-stretch items-start gap-2.5 bg-gray-900 px-[19px] py-[24px]">
-        <div className="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[17px]">
-          <p className="relative w-full shrink-0 font-['Roboto_Flex:Bold',sans-serif] text-[24px] leading-[normal] font-bold text-custom-green not-italic">
+      <div className="flex w-[613px] flex-col items-start gap-2.5 bg-gray-900 px-[19px] py-6">
+        <div className="flex w-full flex-col items-start gap-[17px]">
+          <p className="w-full font-['Roboto_Flex:Bold',sans-serif] text-2xl font-bold text-custom-green">
             Do podziału : {total}
           </p>
-          <div className="relative flex w-full shrink-0 flex-col content-stretch items-start gap-[12px] font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-custom-green not-italic">
+          <div className="flex w-full flex-col items-start gap-3 font-['Roboto_Flex:Bold',sans-serif] font-bold text-custom-green">
             {splits.map((split, index) => (
-              <p key={index} className="relative w-full shrink-0">
+              <p key={index} className="w-full shrink-0">
                 {split.name}: {split.amount}
               </p>
             ))}
@@ -91,16 +98,22 @@ export default function CalculationResults({
       </div>
 
       {/* Action buttons */}
-      <div className="relative box-border flex w-[611px] shrink-0 content-stretch items-center justify-end gap-2.5 rounded-lg bg-gray-900 p-[10px]">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-lg border border-solid border-gray-900"
-        />
+      <div className="flex w-[611px] items-center justify-end gap-2.5 rounded-lg bg-gray-900 p-2.5">
+        <button
+          onClick={handlePayClick}
+          disabled={!paymentUrl}
+          className="flex items-center justify-center gap-2.5 bg-custom-green px-7 py-2.5 rounded-lg border border-solid border-gray-900 transition-colors hover:bg-custom-green-hover disabled:bg-gray-400"
+        >
+          <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold text-nowrap whitespace-pre text-black">
+            Zapłać
+          </p>
+          <CopyIcon />
+        </button>
         <button
           onClick={onShare}
-          className="relative box-border flex shrink-0 content-stretch items-center justify-center gap-2.5 rounded-lg bg-custom-green-dark px-[28px] py-[10px] transition-colors hover:bg-custom-green-darker"
+          className="flex items-center justify-center gap-2.5 rounded-lg bg-custom-green-dark px-7 py-2.5 transition-colors hover:bg-custom-green-darker"
         >
-          <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-gray-900 not-italic">
+          <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold text-nowrap whitespace-pre text-gray-900">
             Udostępnij
           </p>
           <CopyIcon />

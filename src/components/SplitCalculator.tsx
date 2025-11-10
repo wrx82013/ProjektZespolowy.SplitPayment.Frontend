@@ -170,9 +170,9 @@ export default function SplitCalculator() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[612px] flex-col content-stretch items-start gap-5 px-4 py-5">
+    <div className="mx-auto flex w-full max-w-[612px] flex-col items-start gap-5 px-4 py-5">
       {/* Title */}
-      <div className="relative flex w-full shrink-0 content-stretch items-center justify-between">
+      <div className="relative flex w-full shrink-0 items-center justify-between">
         <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-[56px] leading-[normal] font-normal text-nowrap whitespace-pre text-black not-italic">
           What are you spliting?
         </p>
@@ -181,7 +181,7 @@ export default function SplitCalculator() {
       {/* Bill Title Input */}
       <div className="relative w-full shrink-0 rounded-lg">
         <div className="flex size-full flex-row items-center rounded-lg">
-          <div className="relative box-border flex w-full content-stretch items-center gap-2.5 p-2.5">
+          <div className="relative box-border flex w-full items-center gap-2.5 p-2.5">
             <input
               type="text"
               placeholder="Enter split title"
@@ -194,11 +194,11 @@ export default function SplitCalculator() {
       </div>
 
       {/* Items Section */}
-      <div className="flex w-full shrink-0 flex-col content-stretch items-start gap-3.5">
+      <div className="flex w-full shrink-0 flex-col items-start gap-3.5">
         <p className="w-full shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-2xl text-black">
           Items
         </p>
-        <div className="flex w-full shrink-0 flex-col content-stretch items-start gap-3">
+        <div className="flex w-full shrink-0 flex-col items-start gap-3">
           {items.map((item) => (
             <div key={item.id} className="flex w-full items-center gap-2">
               <BillItem
@@ -216,7 +216,7 @@ export default function SplitCalculator() {
             </div>
           ))}
           {/* Add Item Row */}
-          <div className="flex w-full shrink-0 content-stretch items-center gap-4 justify-between">
+          <div className="flex w-full shrink-0 items-center gap-4 justify-between">
             <p className="shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-nowrap whitespace-pre not-italic bg-slate-200 w-full rounded-lg p-2">
               Enter more items
             </p>
@@ -226,11 +226,11 @@ export default function SplitCalculator() {
       </div>
 
       {/* Homies Section */}
-      <div className="flex w-full shrink-0 flex-col content-stretch items-start gap-3.5">
+      <div className="flex w-full shrink-0 flex-col items-start gap-3.5">
         <p className="w-full shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-2xl text-black">
           Homies
         </p>
-        <div className="flex w-full shrink-0 flex-col content-stretch items-start gap-3">
+        <div className="flex w-full shrink-0 flex-col items-start gap-3">
           {homies.map((homie) => (
             <div key={homie.id} className="flex w-full items-center gap-2">
               <HomieItem
@@ -252,8 +252,8 @@ export default function SplitCalculator() {
             </div>
           ))}
           {/* Add Homie Row */}
-          <div className="flex w-full shrink-0 content-stretch items-center gap-4">
-            <div className="flex w-full shrink-0 content-stretch items-center gap-4 justify-between">
+          <div className="flex w-full shrink-0 items-center gap-4">
+            <div className="flex w-full shrink-0 items-center gap-4 justify-between">
               <p className="shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-nowrap whitespace-pre bg-slate-200 w-full rounded-lg p-2">
                 Enter more homies
               </p>
@@ -265,26 +265,22 @@ export default function SplitCalculator() {
 
       {/* Calculate Button or Results */}
       {!isCalculated ? (
-        <div className="relative w-full shrink-0 rounded-xl bg-black">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 rounded-xl border border-solid border-black"
-          />
+        <div className="relative w-full shrink-0 bg-black  rounded-xl border border-solid border-black">
           <div className="flex size-full flex-row items-center">
-            <div className="relative box-border flex w-full content-stretch items-center justify-between p-2">
-              <div className="relative flex shrink-0 content-stretch items-center justify-center gap-2.5">
-                <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-[#57cbab] not-italic">
+            <div className="flex w-full items-center justify-between p-2">
+              <div className="flex items-center justify-center gap-2.5">
+                <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold text-nowrap whitespace-pre text-custom-green">
                   Suma
                 </p>
               </div>
-              <div className="relative flex shrink-0 content-stretch items-center justify-end gap-[32px]">
-                <p className="relative shrink-0 text-right font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-[#57cbab] not-italic">
+              <div className="flex items-center justify-end gap-8">
+                <p className="shrink-0 text-right font-['Roboto_Flex:Bold',sans-serif] font-bold text-custom-green">
                   {totalInMainCurrency.toFixed(2) || "--"} PLN
                 </p>
                 <button
                   onClick={calculateSplit}
                   disabled={items.length === 0 || homies.length === 0}
-                  className="relative box-border flex shrink-0 content-stretch items-center justify-center gap-[10px] rounded-[8px] bg-[#57cbab] px-[28px] py-[10px] transition-colors hover:bg-[#48b89a] disabled:bg-gray-400"
+                  className="flex items-center justify-center gap-2.5 rounded-lg bg-custom-green px-7 py-2.5 transition-colors hover:bg-custom-green-hover disabled:bg-gray-400"
                   title={
                     items.length === 0 || homies.length === 0
                       ? "Add at least one item and one homie to calculate the split"
@@ -317,6 +313,7 @@ export default function SplitCalculator() {
                 });
               }
             }}
+            paymentUrl={calculationResult.paymentUrl}
           />
         )
       )}
