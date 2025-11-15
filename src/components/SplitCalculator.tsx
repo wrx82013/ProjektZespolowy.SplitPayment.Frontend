@@ -170,10 +170,10 @@ export default function SplitCalculator() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[612px] flex-col items-start gap-5 px-4 py-5">
+    <div className="mx-auto flex w-full max-w-[612px] flex-col items-start gap-5 px-2 sm:px-4 py-5">
       {/* Title */}
       <div className="relative flex w-full shrink-0 items-center justify-between">
-        <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-[56px] leading-[normal] font-normal text-nowrap whitespace-pre text-black not-italic">
+        <p className="relative font-['Roboto_Flex:Regular',sans-serif] text-2xl sm:text-4xl md:text-[56px] leading-[normal] font-normal text-black not-italic break-words">
           What are you spliting?
         </p>
       </div>
@@ -216,8 +216,8 @@ export default function SplitCalculator() {
             </div>
           ))}
           {/* Add Item Row */}
-          <div className="flex w-full shrink-0 items-center gap-4 justify-between">
-            <p className="shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-nowrap whitespace-pre not-italic bg-slate-200 w-full rounded-lg p-2">
+          <div className="flex w-full shrink-0 items-center gap-2 sm:gap-4 justify-between">
+            <p className="flex-1 min-w-0 font-['Roboto_Flex:Regular',sans-serif] not-italic bg-slate-200 rounded-lg p-2 truncate">
               Enter more items
             </p>
             <AddButton onClick={addItem} data-testid="add-button-items" />
@@ -252,12 +252,10 @@ export default function SplitCalculator() {
             </div>
           ))}
           {/* Add Homie Row */}
-          <div className="flex w-full shrink-0 items-center gap-4">
-            <div className="flex w-full shrink-0 items-center gap-4 justify-between">
-              <p className="shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-nowrap whitespace-pre bg-slate-200 w-full rounded-lg p-2">
-                Enter more homies
-              </p>
-            </div>
+          <div className="flex w-full shrink-0 items-center gap-2 sm:gap-4 justify-between">
+            <p className="flex-1 min-w-0 font-['Roboto_Flex:Regular',sans-serif] not-italic bg-slate-200 rounded-lg p-2 truncate">
+              Enter more homies
+            </p>
             <AddButton onClick={addHomie} data-testid="add-button-homies" />
           </div>
         </div>
@@ -265,29 +263,32 @@ export default function SplitCalculator() {
 
       {/* Calculate Button or Results */}
       {!isCalculated ? (
-        <div className="relative w-full shrink-0 bg-black  rounded-xl border border-solid border-black">
-          <div className="flex size-full flex-row items-center">
-            <div className="flex w-full items-center justify-between p-2">
-              <div className="flex items-center justify-center gap-2.5">
-                <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold text-nowrap whitespace-pre text-custom-green">
+        <div className="relative w-full shrink-0 bg-black rounded-xl border border-solid border-black">
+          <div className="flex size-full flex-col sm:flex-row items-stretch sm:items-center">
+            <div className="flex w-full flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-2 p-3 sm:p-2">
+              <div className="flex items-center justify-between sm:justify-center gap-2.5">
+                <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold text-custom-green">
                   Suma
                 </p>
+                <p className="sm:hidden text-right font-['Roboto_Flex:Bold',sans-serif] font-bold text-custom-green">
+                  {totalInMainCurrency.toFixed(2) || "--"} PLN
+                </p>
               </div>
-              <div className="flex items-center justify-end gap-8">
-                <p className="shrink-0 text-right font-['Roboto_Flex:Bold',sans-serif] font-bold text-custom-green">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:gap-4 md:gap-8">
+                <p className="hidden sm:block text-right font-['Roboto_Flex:Bold',sans-serif] font-bold text-custom-green">
                   {totalInMainCurrency.toFixed(2) || "--"} PLN
                 </p>
                 <button
                   onClick={calculateSplit}
                   disabled={items.length === 0 || homies.length === 0}
-                  className="flex items-center justify-center gap-2.5 rounded-lg bg-custom-green px-7 py-2.5 transition-colors hover:bg-custom-green-hover disabled:bg-gray-400"
+                  className="flex items-center justify-center gap-2.5 rounded-lg bg-custom-green px-5 sm:px-7 py-2.5 transition-colors hover:bg-custom-green-hover disabled:bg-gray-400"
                   title={
                     items.length === 0 || homies.length === 0
                       ? "Add at least one item and one homie to calculate the split"
                       : ""
                   }
                 >
-                  <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif]  leading-[normal] font-bold text-nowrap whitespace-pre text-black not-italic">
+                  <p className="relative shrink-0 font-['Roboto_Flex:Bold',sans-serif] leading-[normal] font-bold text-black not-italic">
                     Oblicz
                   </p>
                 </button>

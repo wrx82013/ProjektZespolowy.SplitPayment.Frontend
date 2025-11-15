@@ -12,19 +12,19 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.2)]">
-      <div className="mx-auto flex w-full items-center justify-between px-6 py-4">
-        <a href="/calculator">
-          <div className="relative flex shrink-0 content-stretch items-center gap-4">
-            <div className="relative h-[79px] w-[82px] shrink-0">
+      <div className="mx-auto flex w-full items-center justify-between px-3 sm:px-6 py-3 sm:py-4">
+        <a href="/calculator" className="flex-shrink-0">
+          <div className="relative flex shrink-0 content-stretch items-center gap-2 sm:gap-4">
+            <div className="relative h-[50px] w-[52px] sm:h-[79px] sm:w-[82px] shrink-0">
               <img
                 alt="Splitpayhomie logo"
-                className="block size-full max-w-none"
-                height="79"
+                className="block size-full object-contain"
                 src={SplitLogo.src}
-                width="82"
               />
             </div>
-            <LogoWordmark />
+            <div className="hidden sm:block">
+              <LogoWordmark />
+            </div>
           </div>
         </a>
         <div className="hidden items-center gap-[35px] font-['Roboto_Flex:Regular',sans-serif] text-[28px] font-normal not-italic text-black text-nowrap md:flex">
@@ -47,10 +47,14 @@ export default function Navbar() {
             Settings
           </Link>
         </div>
-        <div className="md:hidden">
-          <button onClick={() => setIsOpen(!isOpen)}>
+        <div className="md:hidden flex-shrink-0">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="p-2"
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+          >
             <svg
-              className="size-8"
+              className="size-6 sm:size-8"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -76,8 +80,8 @@ export default function Navbar() {
         </div>
       </div>
       {isOpen && (
-        <div className="bg-custom-green p-4 md:hidden">
-          <div className="flex flex-col items-center gap-4">
+        <div className="bg-custom-green p-4 md:hidden border-t border-gray-200">
+          <div className="flex flex-col items-center gap-4 font-['Roboto_Flex:Regular',sans-serif] text-lg font-normal text-black">
             <Link
               href="/calculator"
               className={`relative shrink-0 transition-opacity hover:opacity-80 ${pathname === "/calculator" ? "underline decoration-solid [text-underline-position:from-font]" : ""}`}

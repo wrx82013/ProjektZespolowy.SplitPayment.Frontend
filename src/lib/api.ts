@@ -3,12 +3,11 @@ import {
   SplitPaymentResponseDto,
 } from "../types/api";
 
-export const API_BASE_URL = "http://projektzespolowy_splitpayment:5000";
-
+// Next.js API routes - te są wywoływane z przeglądarki i komunikują się z backendem
 export const createSplitPayment = async (
   data: CreateSplitPaymentRequestDto,
 ): Promise<SplitPaymentResponseDto> => {
-  const response = await fetch(`${API_BASE_URL}/api/SplitPayment`, {
+  const response = await fetch(`/api/split-payment`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -27,7 +26,7 @@ export const createSplitPayment = async (
 export const getSplitPayment = async (
   id: string,
 ): Promise<SplitPaymentResponseDto> => {
-  const response = await fetch(`${API_BASE_URL}/api/SplitPayment/${id}`);
+  const response = await fetch(`/api/split-payment?id=${id}`);
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -40,7 +39,7 @@ export const getSplitPayment = async (
 export const validateSplitPayment = async (
   data: CreateSplitPaymentRequestDto,
 ): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/api/SplitPayment/validate`, {
+  const response = await fetch(`/api/split-payment/validate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

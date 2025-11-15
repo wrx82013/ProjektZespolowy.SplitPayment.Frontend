@@ -1,5 +1,3 @@
-import { API_BASE_URL } from "@/lib/api";
-
 interface Split {
   name: string;
   amount: string;
@@ -57,40 +55,41 @@ export default function CalculationResults({
 }: CalculationResultsProps) {
   const handlePayClick = () => {
     if (paymentUrl) {
-      const url = new URL(paymentUrl);
-      const endpoint = url.pathname;
-      window.open(`${API_BASE_URL}${endpoint}`, "_blank");
+      window.open(paymentUrl, "_blank");
     }
   };
 
   return (
-    <div className="flex flex-col items-end gap-6">
-      <div className="flex w-2xl items-center justify-between rounded-lg bg-gray-900 p-2.5 border border-solid border-gray-900">
-        <div className="flex items-center justify-center gap-2.5">
-          <p className="font-['Roboto_Flex:Bold',sans-serif]font-bold text-nowrap whitespace-pre text-custom-green">
+    <div className="flex w-full flex-col items-stretch gap-6">
+      <div className="flex w-full flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-2 rounded-lg bg-gray-900 p-3 sm:p-2.5 border border-solid border-gray-900">
+        <div className="flex items-center justify-between sm:justify-center gap-2.5">
+          <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold text-custom-green">
             Suma
           </p>
-        </div>
-        <div className="flex w-[526px] items-center justify-end gap-8">
-          <p className="w-[391px] text-right font-['Roboto_Flex:Bold',sans-serif] font-bold text-custom-green">
+          <p className="sm:hidden text-right font-['Roboto_Flex:Bold',sans-serif] font-bold text-custom-green">
             {total}
           </p>
-          <div className="flex items-center justify-center gap-2.5 rounded-lg bg-custom-green-dark px-7 py-2.5">
-            <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold text-nowrap whitespace-pre text-gray-900">
+        </div>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 sm:gap-4 md:gap-8">
+          <p className="hidden sm:block text-right font-['Roboto_Flex:Bold',sans-serif] font-bold text-custom-green">
+            {total}
+          </p>
+          <div className="flex items-center justify-center gap-2.5 rounded-lg bg-custom-green-dark px-5 sm:px-7 py-2.5">
+            <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold text-gray-900">
               Policzono
             </p>
           </div>
         </div>
       </div>
 
-      <div className="flex w-[613px] flex-col items-start gap-2.5 bg-gray-900 px-[19px] py-6">
+      <div className="flex w-full flex-col items-start gap-2.5 bg-gray-900 px-4 sm:px-[19px] py-6 rounded-lg">
         <div className="flex w-full flex-col items-start gap-[17px]">
-          <p className="w-full font-['Roboto_Flex:Bold',sans-serif] text-2xl font-bold text-custom-green">
+          <p className="w-full font-['Roboto_Flex:Bold',sans-serif] text-xl sm:text-2xl font-bold text-custom-green">
             Do podziału : {total}
           </p>
-          <div className="flex w-full flex-col items-start gap-3 font-['Roboto_Flex:Bold',sans-serif] font-bold text-custom-green">
+          <div className="flex w-full flex-col items-start gap-3 font-['Roboto_Flex:Bold',sans-serif] font-bold text-custom-green text-sm sm:text-base">
             {splits.map((split, index) => (
-              <p key={index} className="w-full shrink-0">
+              <p key={index} className="w-full shrink-0 break-words">
                 {split.name}: {split.amount}
               </p>
             ))}
@@ -99,26 +98,25 @@ export default function CalculationResults({
       </div>
 
       {/* Action buttons */}
-      <div className="flex w-[611px] items-center justify-end gap-2.5 rounded-lg bg-gray-900 p-2.5">
+      <div className="flex w-full flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2.5 rounded-lg bg-gray-900 p-3 sm:p-2.5">
         <button
           onClick={handlePayClick}
           disabled={!paymentUrl}
-          className="flex items-center justify-center gap-2.5 border-custom-green px-7 py-2.5 rounded-lg border border-solid bg-gray-900 transition-colors hover:bg-gray-400 disabled:bg-custom-green-dark"
+          className="flex items-center justify-center gap-2.5 border-custom-green px-5 sm:px-7 py-2.5 rounded-lg border border-solid bg-gray-900 transition-colors hover:bg-gray-400 disabled:bg-custom-green-dark"
         >
-          <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold text-nowrap whitespace-pre text-custom-green">
+          <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold text-custom-green">
             Zapłać
           </p>
         </button>
         <button
           onClick={onShare}
-          className="flex items-center justify-center gap-2.5 rounded-lg bg-custom-green-dark px-7 py-2.5 transition-colors hover:bg-custom-green-darker"
+          className="flex items-center justify-center gap-2.5 rounded-lg bg-custom-green-dark px-5 sm:px-7 py-2.5 transition-colors hover:bg-custom-green-darker"
         >
-          <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold text-nowrap whitespace-pre text-gray-900">
+          <p className="font-['Roboto_Flex:Bold',sans-serif] font-bold text-gray-900">
             Udostępnij
           </p>
           <CopyIcon />
         </button>
-        .
       </div>
     </div>
   );

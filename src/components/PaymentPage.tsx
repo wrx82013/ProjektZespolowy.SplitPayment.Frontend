@@ -1,38 +1,24 @@
 export default function PaymentPage() {
   return (
-    <div
-      className="relative min-h-screen w-full bg-white"
-      data-name="Pay for splited payment"
-    >
-      {/* Content */}
-      <div className="relative">
-        {/* Title */}
-        <div className="absolute top-[69px] left-[276px]">
-          <p className="font-['Roboto_Flex:Regular',sans-serif] text-[56px] leading-[normal] font-normal text-nowrap whitespace-pre text-black not-italic">
+    <div className="min-h-screen bg-white">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mx-auto flex w-full max-w-[612px] flex-col content-stretch items-start gap-5 px-2 sm:px-4 py-5">
+          <p className="font-['Roboto_Flex:Regular',sans-serif] text-3xl sm:text-4xl md:text-[56px] leading-[normal] font-normal text-black not-italic">
             Zapłać
           </p>
-        </div>
 
-        {/* Center content */}
-        <div className="flex flex-col items-center justify-center pt-[200px] pb-[100px]">
-          {/* Emoji */}
-          <p className="mb-8 font-['Roboto_Flex:Regular',sans-serif] text-[160px] leading-[normal] font-normal text-nowrap whitespace-pre text-black not-italic">
-            💰
-          </p>
+          {/* Center content */}
+          <div className="flex w-full flex-col items-center justify-center py-10 sm:py-20">
+            {/* Emoji */}
+            <p className="mb-6 sm:mb-8 font-['Roboto_Flex:Regular',sans-serif] text-7xl sm:text-8xl md:text-[160px] leading-[normal] font-normal text-black not-italic">
+              💰
+            </p>
 
-          {/* Image */}
-          <div className="mb-8 h-[307px] w-[265px]">
-            <img
-              alt="Payment coming soon"
-              className="size-full max-w-none object-cover"
-              src={"imgMoney"}
-            />
+            {/* Message */}
+            <p className="text-center font-['Roboto_Flex:Regular',sans-serif] text-xl sm:text-2xl md:text-[28px] leading-[normal] font-normal text-black not-italic px-4">
+              Sorry, we&apos;re working on it...
+            </p>
           </div>
-
-          {/* Message */}
-          <p className="font-['Roboto_Flex:Regular',sans-serif] text-[28px] leading-[normal] font-normal text-nowrap whitespace-pre text-black not-italic">
-            Sorry, we&apos;re working on it...
-          </p>
         </div>
       </div>
     </div>

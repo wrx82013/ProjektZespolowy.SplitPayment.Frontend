@@ -22,8 +22,8 @@ export default function BillItem({
   onRemove,
 }: BillItemProps) {
   return (
-    <div className="flex w-full shrink-0 content-stretch items-center gap-4">
-      <div className="rounded-xl border border-solid border-black box-border flex w-[492px] shrink-0 content-stretch items-center gap-2.5 p-2.5">
+    <div className="flex w-full shrink-0 content-stretch items-center gap-2 sm:gap-4">
+      <div className="rounded-xl border border-solid border-black box-border flex flex-1 min-w-0 content-stretch items-center gap-2.5 p-2.5">
         <input
           type="text"
           value={name}
@@ -32,18 +32,18 @@ export default function BillItem({
           className="w-full bg-transparent font-['Roboto_Flex:Regular',sans-serif] font-normal text-black not-italic outline-none"
         />
       </div>
-      <div className="relative box-border flex w-[104px] shrink-0 content-stretch items-center justify-between rounded-xl p-2.5 border border-solid border-black">
+      <div className="relative box-border flex w-[90px] sm:w-[104px] shrink-0 content-stretch items-center justify-between rounded-xl p-2.5 border border-solid border-black">
         <input
           type="number"
           value={amount}
           onChange={(e) => onAmountChange(e.target.value)}
           placeholder="0"
-          className="w-10 bg-transparent font-['Roboto_Flex:Regular',sans-serif]  leading-[normal] font-normal text-black not-italic outline-none"
+          className="w-8 sm:w-10 bg-transparent font-['Roboto_Flex:Regular',sans-serif] leading-[normal] font-normal text-black not-italic outline-none"
         />
         <select
           value={currency}
           onChange={(e) => onCurrencyChange(e.target.value)}
-          className="bg-transparent font-['Roboto_Flex:Regular',sans-serif]  leading-[normal] font-normal text-[rgba(0,0,0,0.5)] not-italic outline-none"
+          className="bg-transparent font-['Roboto_Flex:Regular',sans-serif] leading-[normal] font-normal text-[rgba(0,0,0,0.5)] not-italic outline-none text-xs sm:text-sm"
         >
           {availableCurrencies.map((curr) => (
             <option key={curr} value={curr}>

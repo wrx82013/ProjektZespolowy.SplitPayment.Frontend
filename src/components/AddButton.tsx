@@ -11,11 +11,10 @@ export default function AddButton({
     <button
       onClick={onClick}
       data-testid={dataTestId || "add-button"}
-      className="h-8 w-24 shrink-0 rounded-lg bg-custom-green cursor-pointer transition-colors hover:bg-custom-green-dark flex items-center justify-center"
+      className="h-8 w-16 sm:w-24 shrink-0 rounded-lg bg-custom-green cursor-pointer transition-colors hover:bg-custom-green-dark flex items-center justify-center"
     >
       <svg
-        width="22"
-        height="24"
+        className="w-4 h-5 sm:w-[22px] sm:h-6"
         viewBox="0 0 22 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
