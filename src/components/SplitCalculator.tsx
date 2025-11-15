@@ -54,6 +54,20 @@ export default function SplitCalculator() {
   const activeHomiesCount = activeHomies.length;
   const defaultPercentagePlaceholder =
     activeHomiesCount > 0 ? (100 / activeHomiesCount).toFixed(2) : "100";
+
+  // Calculate total percentage
+  const totalPercentage = activeHomies.reduce((sum, homie) => {
+    const value = parseFloat(homie.percentage);
+    return sum + (isNaN(value) ? 0 : value);
+  }, 0);
+
+  const percentageWarning =
+    activeHomiesCount > 0 && Math.abs(totalPercentage - 100) > 0.01
+      ? totalPercentage > 100
+        ? `Uwaga: Suma procentów wynosi ${totalPercentage.toFixed(2)}% (przekracza 100%)`
+        : `Uwaga: Suma procentów wynosi ${totalPercentage.toFixed(2)}% (brakuje ${(100 - totalPercentage).toFixed(2)}%)`
+      : null;
+
   const canCalculate = items.length > 0 && activeHomiesCount > 0;
 
   const recalculatePercentages = (
@@ -61,29 +75,55 @@ export default function SplitCalculator() {
     manualOverrides: Set<string>,
   ) => {
     const activeHomies = homiesList.filter((homie) => !homie.isExcluded);
+
+    // If no active homies, everyone gets 0%
+    if (activeHomies.length === 0) {
+      return homiesList.map((homie) => ({
+        ...homie,
+        percentage: "0",
+      }));
+    }
+
+    // Calculate sum of manual percentages
     const manualPercentageSum = activeHomies.reduce((sum, homie) => {
       if (!manualOverrides.has(homie.id)) {
         return sum;
       }
-      return sum + (parseFloat(homie.percentage) || 0);
+      const value = parseFloat(homie.percentage);
+      return sum + (isNaN(value) ? 0 : Math.max(0, value));
     }, 0);
 
-    const remainingPercentage = Math.max(0, 100 - manualPercentageSum);
+    // Get homies with automatic percentages
     const autoHomies = activeHomies.filter(
       (homie) => !manualOverrides.has(homie.id),
     );
-    const autoPercentage =
-      autoHomies.length > 0 ? remainingPercentage / autoHomies.length : 0;
+
+    // Calculate remaining percentage for auto homies
+    const remainingPercentage = Math.max(0, 100 - manualPercentageSum);
+
+    // Calculate auto percentage per homie
+    let autoPercentage = 0;
+    if (autoHomies.length > 0) {
+      autoPercentage = remainingPercentage / autoHomies.length;
+    }
 
     return homiesList.map((homie) => {
+      // Excluded homies always get 0%
       if (homie.isExcluded) {
         return { ...homie, percentage: "0" };
       }
 
+      // Manual percentages are preserved
       if (manualOverrides.has(homie.id)) {
+        const value = parseFloat(homie.percentage);
+        // Ensure manual values are non-negative
+        if (isNaN(value) || value < 0) {
+          return { ...homie, percentage: "0" };
+        }
         return homie;
       }
 
+      // Auto-calculated percentages
       return { ...homie, percentage: autoPercentage.toFixed(2) };
     });
   };
@@ -119,15 +159,20 @@ export default function SplitCalculator() {
   };
 
   const removeHomie = (id: string) => {
+    // Remove the homie from manual overrides
     const newOverrides = new Set(manualPercentageOverrides);
     newOverrides.delete(id);
-    setManualPercentageOverrides(newOverrides);
 
+    // Filter out the removed homie
     const newHomiesList = homies.filter((homie) => homie.id !== id);
+
+    // Recalculate percentages for remaining homies
     const recalculatedHomies = recalculatePercentages(
       newHomiesList,
       newOverrides,
     );
+
+    setManualPercentageOverrides(newOverrides);
     setHomies(recalculatedHomies);
   };
 
@@ -145,18 +190,36 @@ export default function SplitCalculator() {
     if (field === "percentage") {
       const newOverrides = new Set(manualPercentageOverrides);
       const trimmedValue = value.trim();
+
+      // If empty, remove from manual overrides (will be auto-calculated)
       if (trimmedValue === "") {
         newOverrides.delete(id);
-      } else {
-        newOverrides.add(id);
+        const updatedHomies = homies.map((homie) =>
+          homie.id === id ? { ...homie, percentage: "" } : homie,
+        );
+        const recalculatedHomies = recalculatePercentages(
+          updatedHomies,
+          newOverrides,
+        );
+        setManualPercentageOverrides(newOverrides);
+        setHomies(recalculatedHomies);
+        return;
       }
+
+      // Add to manual overrides (allow typing even if not a valid number yet)
+      newOverrides.add(id);
+
+      // Update the homie with the new value
       const updatedHomies = homies.map((homie) =>
         homie.id === id ? { ...homie, percentage: value } : homie,
       );
+
+      // Recalculate other homies
       const recalculatedHomies = recalculatePercentages(
         updatedHomies,
         newOverrides,
       );
+
       setManualPercentageOverrides(newOverrides);
       setHomies(recalculatedHomies);
       return;
@@ -171,18 +234,30 @@ export default function SplitCalculator() {
 
   const toggleHomieExclusion = (id: string) => {
     const newOverrides = new Set(manualPercentageOverrides);
+    const targetHomie = homies.find((h) => h.id === id);
+
+    if (!targetHomie) return;
+
+    const willBeExcluded = !targetHomie.isExcluded;
+
+    // When excluding, remove from manual overrides
+    if (willBeExcluded) {
+      newOverrides.delete(id);
+    }
+    // When including back, also remove from overrides (will be auto-calculated)
+    else {
+      newOverrides.delete(id);
+    }
+
     const updatedHomies = homies.map((homie) => {
       if (homie.id !== id) {
         return homie;
       }
 
-      newOverrides.delete(id);
-
-      const isExcluded = !homie.isExcluded;
       return {
         ...homie,
-        isExcluded,
-        percentage: isExcluded ? "0" : "",
+        isExcluded: willBeExcluded,
+        percentage: willBeExcluded ? "0" : "",
       };
     });
 
@@ -329,6 +404,21 @@ export default function SplitCalculator() {
           </div>
         </div>
       </div>
+
+      {/* Percentage Warning */}
+      {percentageWarning && (
+        <div
+          className={`w-full rounded-lg p-3 ${
+            totalPercentage > 100
+              ? "bg-red-100 border border-red-400 text-red-700"
+              : "bg-yellow-100 border border-yellow-400 text-yellow-700"
+          }`}
+        >
+          <p className="font-['Roboto_Flex:Regular',sans-serif] text-sm">
+            {percentageWarning}
+          </p>
+        </div>
+      )}
 
       {/* Calculate Button or Results */}
       {!isCalculated ? (
