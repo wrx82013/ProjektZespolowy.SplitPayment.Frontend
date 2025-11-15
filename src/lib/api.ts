@@ -27,7 +27,7 @@ export const createSplitPayment = async (
 export const getSplitPayment = async (
   id: string,
 ): Promise<SplitPaymentResponseDto> => {
-  const response = await fetch(`/api/SplitPayment?id=${id}`);
+  const response = await fetch(`/api/SplitPayment/${id}`);
 
   if (!response.ok) {
     const errorData = await response.json();
