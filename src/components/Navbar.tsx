@@ -4,15 +4,27 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SplitLogo from "../../public/assets/splitpayLogo.png";
 import { LogoWordmark } from "./LogoWordmark";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
   return (
-    <nav className="sticky top-0 z-50 bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.2)]">
-      <div className="mx-auto flex w-full items-center justify-between px-3 sm:px-6 py-3 sm:py-4">
+    <>
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/30 md:hidden"
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      <nav className="sticky top-0 z-50 bg-white shadow-[0px_4px_4px_0px_rgba(0,0,0,0.2)]">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-3 sm:px-6 py-3 sm:py-4">
         <a href="/calculator" className="flex-shrink-0">
           <div className="relative flex shrink-0 content-stretch items-center gap-2 sm:gap-4">
             <div className="relative h-[50px] w-[52px] sm:h-[79px] sm:w-[82px] shrink-0">
@@ -51,6 +63,8 @@ export default function Navbar() {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="p-2"
+            aria-expanded={isOpen}
+            aria-controls="mobile-navigation"
             aria-label={isOpen ? "Close menu" : "Open menu"}
           >
             <svg
@@ -79,33 +93,37 @@ export default function Navbar() {
           </button>
         </div>
       </div>
-      {isOpen && (
-        <div className="bg-custom-green p-4 md:hidden border-t border-gray-200">
-          <div className="flex flex-col items-center gap-4 font-['Roboto_Flex:Regular',sans-serif] text-lg font-normal text-black">
-            <Link
-              href="/calculator"
-              className={`relative shrink-0 transition-opacity hover:opacity-80 ${pathname === "/calculator" ? "underline decoration-solid [text-underline-position:from-font]" : ""}`}
-              onClick={() => setIsOpen(false)}
-            >
-              Split new bill
-            </Link>
-            <Link
-              href="/history"
-              className={`relative shrink-0 transition-opacity hover:opacity-80 ${pathname === "/history" ? "underline decoration-solid [text-underline-position:from-font]" : ""}`}
-              onClick={() => setIsOpen(false)}
-            >
-              History
-            </Link>
-            <Link
-              href="/settings"
-              className={`relative shrink-0 transition-opacity hover:opacity-80 ${pathname === "/settings" ? "underline decoration-solid [text-underline-position:from-font]" : ""}`}
-              onClick={() => setIsOpen(false)}
-            >
-              Settings
-            </Link>
+        {isOpen && (
+          <div
+            id="mobile-navigation"
+            className="md:hidden border-t border-gray-200 bg-custom-green p-4"
+          >
+            <div className="flex flex-col items-center gap-4 font-['Roboto_Flex:Regular',sans-serif] text-lg font-normal text-black">
+              <Link
+                href="/calculator"
+                className={`w-full rounded-md px-3 py-2 text-center transition-colors hover:bg-white/40 ${pathname === "/calculator" ? "underline decoration-solid [text-underline-position:from-font]" : ""}`}
+                onClick={() => setIsOpen(false)}
+              >
+                Split new bill
+              </Link>
+              <Link
+                href="/history"
+                className={`w-full rounded-md px-3 py-2 text-center transition-colors hover:bg-white/40 ${pathname === "/history" ? "underline decoration-solid [text-underline-position:from-font]" : ""}`}
+                onClick={() => setIsOpen(false)}
+              >
+                History
+              </Link>
+              <Link
+                href="/settings"
+                className={`w-full rounded-md px-3 py-2 text-center transition-colors hover:bg-white/40 ${pathname === "/settings" ? "underline decoration-solid [text-underline-position:from-font]" : ""}`}
+                onClick={() => setIsOpen(false)}
+              >
+                Settings
+              </Link>
+            </div>
           </div>
-        </div>
-      )}
-    </nav>
+        )}
+      </nav>
+    </>
   );
 }

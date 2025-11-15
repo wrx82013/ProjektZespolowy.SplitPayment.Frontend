@@ -417,6 +417,7 @@ FodyWeavers.xsd
 *.msm
 *.msp
 .next
+.data/
 
 # Playwright
 /test-results/

@@ -1,18 +1,10 @@
 import HistoryItem from "./HistoryItem";
 import Cmondosomething from "../../public/assets/cmondosomething.png";
-
-export interface Calculation {
-  id: string;
-  title: string;
-  items: Array<{ name: string; amount: string; currency: string }>;
-  homies: Array<{ name: string; contact: string }>;
-  total: string;
-  timestamp: number;
-}
+import { HistoryCalculation } from "@/types/history";
 
 interface HistoryPageProps {
-  calculations: Calculation[];
-  onEdit: (calculation: Calculation) => void;
+  calculations: HistoryCalculation[];
+  onEdit: (calculation: HistoryCalculation) => void;
   onDelete: (id: string) => void;
   // onNavigateToSplit: () => void;
 }

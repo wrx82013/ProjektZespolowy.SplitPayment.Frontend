@@ -50,26 +50,26 @@ export default function HistoryItem({
   onDelete,
 }: HistoryItemProps) {
   return (
-    <div className="relative flex w-full shrink-0 content-stretch items-center gap-[16px]">
-      <div className="relative box-border flex w-[541px] shrink-0 content-stretch items-center gap-2.5 rounded-lg p-[10px]">
+    <div className="relative flex w-full flex-col gap-3 rounded-xl border border-gray-200 p-3 sm:flex-row sm:items-center sm:gap-4">
+      <div className="relative box-border flex w-full flex-1 items-center gap-2.5 rounded-lg p-[10px]">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 rounded-lg border border-solid border-gray-900"
         />
-        <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif]  leading-[normal] font-normal text-nowrap whitespace-pre text-gray-900 not-italic">
+        <p className="relative w-full break-words font-['Roboto_Flex:Regular',sans-serif] leading-[normal] font-normal text-gray-900 not-italic">
           {title}
         </p>
       </div>
-      <div className="relative flex shrink-0 content-stretch items-center gap-[15px]">
+      <div className="relative flex flex-wrap items-center gap-3">
         <button
           onClick={onDelete}
-          className="relative size-[39px] shrink-0 rounded-lg bg-custom-red transition-colors hover:bg-custom-red-dark"
+          className="relative size-[44px] shrink-0 rounded-lg bg-custom-red transition-colors hover:bg-custom-red-dark"
         >
           <TrashIcon />
         </button>
         <button
           onClick={onEdit}
-          className="relative size-[39px] shrink-0 rounded-lg bg-custom-green transition-colors hover:bg-custom-green-dark"
+          className="relative size-[44px] shrink-0 rounded-lg bg-custom-green transition-colors hover:bg-custom-green-dark"
         >
           <EditIcon />
         </button>

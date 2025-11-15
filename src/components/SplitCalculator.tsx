@@ -26,6 +26,7 @@ interface Homie {
   name: string;
   percentage: string;
   userEmail: string;
+  isExcluded: boolean;
 }
 
 export default function SplitCalculator() {
@@ -48,28 +49,42 @@ export default function SplitCalculator() {
     return sum + amount * rate;
   }, 0);
 
+  const activeHomies = homies.filter((homie) => !homie.isExcluded);
+  const activeHomiesCount = activeHomies.length;
+  const defaultPercentagePlaceholder =
+    activeHomiesCount > 0 ? (100 / activeHomiesCount).toFixed(2) : "100";
+  const canCalculate = items.length > 0 && activeHomiesCount > 0;
+
   const recalculatePercentages = (
     homiesList: Homie[],
     manualOverrides: Set<string>,
   ) => {
-    const autoHomies = homiesList.filter((h) => !manualOverrides.has(h.id));
-    const manualHomies = homiesList.filter((h) => manualOverrides.has(h.id));
+    const activeHomies = homiesList.filter((homie) => !homie.isExcluded);
+    const manualPercentageSum = activeHomies.reduce((sum, homie) => {
+      if (!manualOverrides.has(homie.id)) {
+        return sum;
+      }
+      return sum + (parseFloat(homie.percentage) || 0);
+    }, 0);
 
-    const manualPercentageSum = manualHomies.reduce(
-      (sum, h) => sum + (parseFloat(h.percentage) || 0),
-      0,
+    const remainingPercentage = Math.max(0, 100 - manualPercentageSum);
+    const autoHomies = activeHomies.filter(
+      (homie) => !manualOverrides.has(homie.id),
     );
+    const autoPercentage =
+      autoHomies.length > 0 ? remainingPercentage / autoHomies.length : 0;
 
-    if (autoHomies.length > 0) {
-      const remainingPercentage = 100 - manualPercentageSum;
-      const autoPercentage = remainingPercentage / autoHomies.length;
+    return homiesList.map((homie) => {
+      if (homie.isExcluded) {
+        return { ...homie, percentage: "0" };
+      }
 
-      autoHomies.forEach((h) => {
-        h.percentage = autoPercentage.toFixed(2);
-      });
-    }
+      if (manualOverrides.has(homie.id)) {
+        return homie;
+      }
 
-    return [...manualHomies, ...autoHomies];
+      return { ...homie, percentage: autoPercentage.toFixed(2) };
+    });
   };
 
   const addItem = () => {
@@ -83,7 +98,13 @@ export default function SplitCalculator() {
     const newHomieId = Date.now().toString();
     const newHomiesList = [
       ...homies,
-      { id: newHomieId, name: "", percentage: "", userEmail: "" },
+      {
+        id: newHomieId,
+        name: "",
+        percentage: "",
+        userEmail: "",
+        isExcluded: false,
+      },
     ];
     const recalculatedHomies = recalculatePercentages(
       newHomiesList,
@@ -117,12 +138,29 @@ export default function SplitCalculator() {
     );
   };
 
-  const updateHomie = (id: string, field: keyof Homie, value: string) => {
+  type HomieEditableField = "name" | "percentage" | "userEmail";
+
+  const updateHomie = (id: string, field: HomieEditableField, value: string) => {
     if (field === "percentage") {
       const newOverrides = new Set(manualPercentageOverrides);
-      newOverrides.add(id);
+      const trimmedValue = value.trim();
+      if (trimmedValue === "") {
+        newOverrides.delete(id);
+      } else {
+        newOverrides.add(id);
+      }
+      const updatedHomies = homies.map((homie) =>
+        homie.id === id ? { ...homie, percentage: value } : homie,
+      );
+      const recalculatedHomies = recalculatePercentages(
+        updatedHomies,
+        newOverrides,
+      );
       setManualPercentageOverrides(newOverrides);
+      setHomies(recalculatedHomies);
+      return;
     }
+
     setHomies(
       homies.map((homie) =>
         homie.id === id ? { ...homie, [field]: value } : homie,
@@ -130,12 +168,39 @@ export default function SplitCalculator() {
     );
   };
 
+  const toggleHomieExclusion = (id: string) => {
+    const newOverrides = new Set(manualPercentageOverrides);
+    const updatedHomies = homies.map((homie) => {
+      if (homie.id !== id) {
+        return homie;
+      }
+
+      newOverrides.delete(id);
+
+      const isExcluded = !homie.isExcluded;
+      return {
+        ...homie,
+        isExcluded,
+        percentage: isExcluded ? "0" : "",
+      };
+    });
+
+    const recalculatedHomies = recalculatePercentages(
+      updatedHomies,
+      newOverrides,
+    );
+    setManualPercentageOverrides(newOverrides);
+    setHomies(recalculatedHomies);
+  };
+
   const calculateSplit = async () => {
     const users: UserPaymentInputDto[] = homies.map((homie) => ({
       userId: homie.id,
       userName: homie.name,
       userEmail: homie.userEmail,
-      percentage: parseFloat(homie.percentage) || null,
+      percentage: homie.isExcluded
+        ? 0
+        : parseFloat(homie.percentage) || null,
     }));
 
     const requestData: CreateSplitPaymentRequestDto = {
@@ -237,6 +302,7 @@ export default function SplitCalculator() {
                 name={homie.name}
                 email={homie.userEmail}
                 percentage={homie.percentage}
+                isExcluded={homie.isExcluded}
                 onNameChange={(value) => updateHomie(homie.id, "name", value)}
                 onEmailChange={(value) =>
                   updateHomie(homie.id, "userEmail", value)
@@ -244,8 +310,9 @@ export default function SplitCalculator() {
                 onPercentageChange={(value) =>
                   updateHomie(homie.id, "percentage", value)
                 }
+                onToggleExclude={() => toggleHomieExclusion(homie.id)}
                 placeholder={
-                  homies.length > 0 ? (100 / homies.length).toFixed(2) : "100"
+                  homie.isExcluded ? "0" : defaultPercentagePlaceholder
                 }
                 removeHomie={() => removeHomie(homie.id)}
               />
@@ -280,11 +347,11 @@ export default function SplitCalculator() {
                 </p>
                 <button
                   onClick={calculateSplit}
-                  disabled={items.length === 0 || homies.length === 0}
+                  disabled={!canCalculate}
                   className="flex items-center justify-center gap-2.5 rounded-lg bg-custom-green px-5 sm:px-7 py-2.5 transition-colors hover:bg-custom-green-hover disabled:bg-gray-400"
                   title={
-                    items.length === 0 || homies.length === 0
-                      ? "Add at least one item and one homie to calculate the split"
+                    !canCalculate
+                      ? "Add at least one item and one participating homie to calculate the split"
                       : ""
                   }
                 >
