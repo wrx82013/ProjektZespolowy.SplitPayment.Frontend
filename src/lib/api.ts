@@ -8,7 +8,7 @@ import { HistoryCalculation } from "@/types/history";
 export const createSplitPayment = async (
   data: CreateSplitPaymentRequestDto,
 ): Promise<SplitPaymentResponseDto> => {
-  const response = await fetch(`/api/split-payment`, {
+  const response = await fetch(`/api/SplitPayment`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -27,7 +27,7 @@ export const createSplitPayment = async (
 export const getSplitPayment = async (
   id: string,
 ): Promise<SplitPaymentResponseDto> => {
-  const response = await fetch(`/api/split-payment?id=${id}`);
+  const response = await fetch(`/api/SplitPayment?id=${id}`);
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -40,7 +40,7 @@ export const getSplitPayment = async (
 export const validateSplitPayment = async (
   data: CreateSplitPaymentRequestDto,
 ): Promise<void> => {
-  const response = await fetch(`/api/split-payment/validate`, {
+  const response = await fetch(`/api/SplitPayment/validate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
