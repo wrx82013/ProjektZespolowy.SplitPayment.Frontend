@@ -7,6 +7,7 @@ import AddButton from "./AddButton";
 import CalculationResults from "./CalculationResults";
 import { toast } from "sonner";
 import { createSplitPayment, validateSplitPayment } from "@/lib/api";
+import { addHistoryRequestId } from "@/lib/historyStorage";
 import {
   CreateSplitPaymentRequestDto,
   SplitPaymentResponseDto,
@@ -224,6 +225,7 @@ export default function SplitCalculator() {
       const result = await createSplitPayment(requestData);
       setCalculationResult(result);
       setIsCalculated(true);
+      addHistoryRequestId(result.requestId);
       toast.success("Calculation successful!", {
         duration: 3000,
       });
