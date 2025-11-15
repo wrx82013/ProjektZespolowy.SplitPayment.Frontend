@@ -7,7 +7,7 @@ interface SettingsPageProps {
   settings: CurrencySettings;
   onSettingsChange: (settings: CurrencySettings) => void;
   // onNavigateToSplit: () => void;
-  // onNavigateToHistory: () => void;
+  // onNavigateToHistory: () => void;;
 }
 
 export default function SettingsPage({
