@@ -22,8 +22,17 @@ export interface UserPaymentInputDto {
   userId?: string | null;
   userName?: string | null;
   userEmail?: string | null;
+  isExcluded?: boolean | null;
   percentage?: number | null;
   amount?: number | null;
+  excludedItemIds?: string[];
+}
+
+export interface BillItemInputDto {
+  id: string;
+  name: string;
+  amount: number;
+  currency: string;
 }
 
 export interface CreateSplitPaymentRequestDto {
@@ -32,6 +41,7 @@ export interface CreateSplitPaymentRequestDto {
   splitType: SplitType;
   description?: string | null;
   users?: UserPaymentInputDto[] | null;
+  items?: BillItemInputDto[] | null;
 }
 
 export interface UserPaymentDto {
@@ -54,6 +64,7 @@ export interface SplitPaymentResponseDto {
   createdAt: string;
   userPayments?: UserPaymentDto[] | null;
   paymentUrl?: string | null;
+  items?: BillItemInputDto[] | null;
 }
 
 export interface ValidationErrorResponse {
@@ -67,4 +78,11 @@ export interface ProblemDetails {
   status?: number | null;
   detail?: string | null;
   instance?: string | null;
+}
+
+export interface ReceiptRecognitionResponse {
+  items: BillItemInputDto[];
+  total: number;
+  currency: string;
+  sourceHint?: string;
 }

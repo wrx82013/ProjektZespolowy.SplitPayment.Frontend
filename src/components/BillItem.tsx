@@ -32,18 +32,24 @@ export default function BillItem({
           className="w-full bg-transparent font-['Roboto_Flex:Regular',sans-serif] font-normal text-black not-italic outline-none"
         />
       </div>
-      <div className="relative box-border flex w-[90px] sm:w-[104px] shrink-0 content-stretch items-center justify-between rounded-xl p-2.5 border border-solid border-black">
+      <div className="relative box-border flex w-32 sm:w-40 shrink-0 items-center gap-1 rounded-xl p-2.5 border border-solid border-black">
         <input
           type="number"
           value={amount}
           onChange={(e) => onAmountChange(e.target.value)}
           placeholder="0"
-          className="w-8 sm:w-10 bg-transparent font-['Roboto_Flex:Regular',sans-serif] leading-[normal] font-normal text-black not-italic outline-none"
+          className="flex-1 min-w-0 bg-transparent text-right font-['Roboto_Flex:Regular',sans-serif] leading-[normal] font-normal text-black not-italic outline-none"
         />
         <select
           value={currency}
           onChange={(e) => onCurrencyChange(e.target.value)}
-          className="bg-transparent font-['Roboto_Flex:Regular',sans-serif] leading-[normal] font-normal text-[rgba(0,0,0,0.5)] not-italic outline-none text-xs sm:text-sm"
+          className="bg-transparent font-['Roboto_Flex:Regular',sans-serif] leading-[normal] font-normal text-[rgba(0,0,0,0.5)] not-italic outline-none text-xs sm:text-sm w-12 appearance-none pr-1"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='rgba(0,0,0,0.5)' d='M0 0l5 5 5-5z'/%3E%3C/svg%3E")`,
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'right center',
+            backgroundSize: '10px 6px'
+          }}
         >
           {availableCurrencies.map((curr) => (
             <option key={curr} value={curr}>

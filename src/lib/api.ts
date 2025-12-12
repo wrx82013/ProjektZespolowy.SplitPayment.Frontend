@@ -1,5 +1,6 @@
 import {
   CreateSplitPaymentRequestDto,
+  ReceiptRecognitionResponse,
   SplitPaymentResponseDto,
 } from "../types/api";
 import { HistoryCalculation } from "@/types/history";
@@ -8,7 +9,7 @@ import { HistoryCalculation } from "@/types/history";
 export const createSplitPayment = async (
   data: CreateSplitPaymentRequestDto,
 ): Promise<SplitPaymentResponseDto> => {
-  const response = await fetch(`/api/SplitPayment`, {
+  const response = await fetch(`/api/split-payment`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -17,8 +18,12 @@ export const createSplitPayment = async (
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to create split payment");
+    const errorData = await response.json().catch(() => ({}));
+    const message =
+      errorData?.message ||
+      (Array.isArray(errorData?.errors) ? errorData.errors.join(", ") : undefined) ||
+      "Failed to create split payment";
+    throw new Error(message);
   }
 
   return response.json();
@@ -27,11 +32,17 @@ export const createSplitPayment = async (
 export const getSplitPayment = async (
   id: string,
 ): Promise<SplitPaymentResponseDto> => {
-  const response = await fetch(`/api/SplitPayment/${id}`);
+  const response = await fetch(`/api/split-payment?id=${encodeURIComponent(id)}`);
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to get split payment");
+    const errorData = await response.json().catch(() => ({}));
+    const message =
+      errorData?.message ||
+      (Array.isArray(errorData?.errors) ? errorData.errors.join(", ") : undefined) ||
+      "Failed to get split payment";
+    const err: Error & { status?: number } = new Error(message);
+    err.status = response.status;
+    throw err;
   }
 
   return response.json();
@@ -40,7 +51,7 @@ export const getSplitPayment = async (
 export const validateSplitPayment = async (
   data: CreateSplitPaymentRequestDto,
 ): Promise<void> => {
-  const response = await fetch(`/api/SplitPayment/validate`, {
+  const response = await fetch(`/api/split-payment/validate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -50,8 +61,29 @@ export const validateSplitPayment = async (
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.errors.join(", ") || "Validation failed");
+    const errors = Array.isArray(errorData.errors) ? errorData.errors : [];
+    const message = errors.length > 0 ? errors.join(", ") : errorData.message || "Validation failed";
+    throw new Error(message);
   }
+};
+
+export const uploadReceipt = async (
+  file: File,
+): Promise<ReceiptRecognitionResponse> => {
+  const formData = new FormData();
+  formData.append("receipt", file);
+
+  const response = await fetch(`/api/receipt`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to parse receipt");
+  }
+
+  return response.json();
 };
 
 export const fetchHistoryCalculations = async (): Promise<

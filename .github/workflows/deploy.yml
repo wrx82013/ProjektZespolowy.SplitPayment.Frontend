@@ -39,6 +39,7 @@ jobs:
             ${{ env.IMAGE_REPO }}:dev-${{ github.sha }}
           build-args: |
             BUILD_DATE=${{ github.run_number }}
+            NEXT_PUBLIC_FRONTEND_URL=${{ vars.NEXT_PUBLIC_FRONTEND_URL }}
           cache-from: type=registry,ref=${{ env.IMAGE_REPO }}:buildcache
           cache-to: type=registry,ref=${{ env.IMAGE_REPO }}:buildcache,mode=max
 
@@ -108,7 +109,8 @@ jobs:
               --restart unless-stopped \
               -e NODE_ENV=development \
               -e PORT=3000 \
-              -e API_BASE_URL="${{ vars.API_BASE_URL }}" \
+              -e API_BASE_URL=http://projektzespolowy_splitpayment:8080 \
+              -e NEXT_PUBLIC_FRONTEND_URL=${{ vars.NEXT_PUBLIC_FRONTEND_URL }} \
               "${IMAGE}"
 
             log "Waiting for container to stabilize..."

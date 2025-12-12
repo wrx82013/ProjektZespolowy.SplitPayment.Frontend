@@ -4,7 +4,9 @@ import {
   SplitPaymentResponseDto,
 } from "@/types/api";
 
-const API_BASE_URL = process.env.API_BASE_URL || "http://projektzespolowy_splitpayment:5000";
+const API_BASE_URL = process.env.API_BASE_URL;
+const FRONTEND_BASE_URL: string =
+  process.env.NEXT_PUBLIC_FRONTEND_URL ?? "";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +16,7 @@ export async function POST(request: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-Frontend-Url": FRONTEND_BASE_URL,
       },
       body: JSON.stringify(body),
     });
@@ -49,7 +52,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/SplitPayment/${id}`);
+    const response = await fetch(`${API_BASE_URL}/api/SplitPayment/${id}`, {
+      headers: {
+        "X-Frontend-Url": FRONTEND_BASE_URL,
+      },
+    });
 
     if (!response.ok) {
       const errorData = await response.json();

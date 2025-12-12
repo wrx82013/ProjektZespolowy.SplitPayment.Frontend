@@ -4,10 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import HistoryPage from "@/components/HistoryPage";
 import { getSplitPayment } from "@/lib/api";
-import {
-  getHistoryRequestIds,
-  removeHistoryRequestId,
-} from "@/lib/historyStorage";
+import { getHistoryRequestIds, removeHistoryRequestId, clearHistory } from "@/lib/historyStorage";
 import { SplitPaymentResponseDto } from "@/types/api";
 
 export default function History() {
@@ -36,8 +33,12 @@ export default function History() {
           try {
             const payment = await getSplitPayment(id);
             return payment;
-          } catch (err) {
+          } catch (err: any) {
             failedIds.push(id);
+            // Auto-clean missing entries when backend returns 404
+            if (err?.status === 404) {
+              removeHistoryRequestId(id);
+            }
             console.error(`Failed to fetch history entry ${id}`, err);
             return null;
           }
@@ -54,7 +55,7 @@ export default function History() {
         setError(
           `Unable to load ${failedIds.length} entr${
             failedIds.length === 1 ? "y" : "ies"
-          }. Try refreshing.`,
+          }. Missing items may have been removed from history.`,
         );
       } else {
         setError(null);
@@ -80,6 +81,13 @@ export default function History() {
     toast.success("Entry removed from history");
   };
 
+  const handleClearAll = () => {
+    clearHistory();
+    setEntries([]);
+    setError(null);
+    toast.success("Historia wyczyszczona");
+  };
+
   return (
     <HistoryPage
       entries={entries}
@@ -87,6 +95,7 @@ export default function History() {
       error={error}
       onRemove={handleRemove}
       onRefresh={() => void fetchEntries()}
+      onClearAll={handleClearAll}
     />
   );
 }

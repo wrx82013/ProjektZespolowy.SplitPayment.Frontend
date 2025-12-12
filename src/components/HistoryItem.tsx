@@ -36,7 +36,7 @@ const countParticipants = (users?: UserPaymentDto[] | null) =>
 
 function TrashIcon() {
   return (
-    <div className="absolute top-[7px] left-[8px] size-[24px]">
+    <div className="absolute top-2 left-2 size-6">
       <svg
         className="block size-full"
         fill="none"
@@ -56,7 +56,7 @@ function TrashIcon() {
 
 function DetailsIcon() {
   return (
-    <div className="absolute top-[7px] left-[8px] size-[24px]">
+    <div className="absolute top-2 left-2 size-6">
       <svg
         className="block size-full"
         fill="none"
@@ -77,12 +77,12 @@ function DetailsIcon() {
 export default function HistoryItem({ entry, onRemove }: HistoryItemProps) {
   return (
     <div className="relative flex w-full flex-col gap-3 rounded-xl border border-gray-200 p-3 sm:flex-row sm:items-center sm:gap-4">
-      <div className="relative box-border flex w-full flex-1 flex-col gap-1 rounded-lg p-[10px]">
+      <div className="relative box-border flex w-full flex-1 flex-col gap-1 rounded-lg p-2.5">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 rounded-lg border border-solid border-gray-900"
         />
-        <p className="relative w-full break-words font-['Roboto_Flex:Regular',sans-serif] text-lg font-semibold text-gray-900">
+        <p className="relative w-full font-['Roboto_Flex:Regular',sans-serif] text-lg font-semibold text-gray-900">
           {entry.description || "Split payment"}
         </p>
         <p className="relative text-sm text-gray-600">
@@ -105,14 +105,14 @@ export default function HistoryItem({ entry, onRemove }: HistoryItemProps) {
       <div className="relative flex flex-wrap items-center gap-3">
         <button
           onClick={() => onRemove(entry.requestId)}
-          className="relative size-[44px] shrink-0 rounded-lg bg-custom-red transition-colors hover:bg-custom-red-dark"
+          className="relative size-11 shrink-0 rounded-lg bg-custom-red transition-colors hover:bg-custom-red-dark"
           aria-label="Remove from history"
         >
           <TrashIcon />
         </button>
         <Link
           href={`/payment/${entry.requestId}`}
-          className="relative flex size-[44px] items-center justify-center rounded-lg bg-custom-green transition-colors hover:bg-custom-green-dark"
+          className="relative flex size-11 items-center justify-center rounded-lg bg-custom-green transition-colors hover:bg-custom-green-dark"
           aria-label="View details"
         >
           <DetailsIcon />
