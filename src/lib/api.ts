@@ -18,8 +18,11 @@ export const createSplitPayment = async (
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    const message = errorData?.message || errorData?.errors?.join?.(", ") || "Failed to create split payment";
+    const errorData = await response.json().catch(() => ({}));
+    const message =
+      errorData?.message ||
+      (Array.isArray(errorData?.errors) ? errorData.errors.join(", ") : undefined) ||
+      "Failed to create split payment";
     throw new Error(message);
   }
 
@@ -32,9 +35,14 @@ export const getSplitPayment = async (
   const response = await fetch(`/api/split-payment?id=${encodeURIComponent(id)}`);
 
   if (!response.ok) {
-    const errorData = await response.json();
-    const message = errorData?.message || errorData?.errors?.join?.(", ") || "Failed to get split payment";
-    throw new Error(message);
+    const errorData = await response.json().catch(() => ({}));
+    const message =
+      errorData?.message ||
+      (Array.isArray(errorData?.errors) ? errorData.errors.join(", ") : undefined) ||
+      "Failed to get split payment";
+    const err: Error & { status?: number } = new Error(message);
+    err.status = response.status;
+    throw err;
   }
 
   return response.json();

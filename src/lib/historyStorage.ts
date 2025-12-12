@@ -52,3 +52,7 @@ export const removeHistoryRequestId = (requestId: string) => {
   const ids = readStorage().filter((id) => id !== requestId);
   writeStorage(ids);
 };
+
+export const clearHistory = () => {
+  writeStorage([]);
+};

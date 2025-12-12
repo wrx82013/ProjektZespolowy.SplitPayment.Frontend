@@ -8,6 +8,7 @@ interface HistoryPageProps {
   error?: string | null;
   onRemove: (id: string) => void;
   onRefresh: () => void;
+  onClearAll?: () => void;
 }
 
 export default function HistoryPage({
@@ -16,6 +17,7 @@ export default function HistoryPage({
   error,
   onRemove,
   onRefresh,
+  onClearAll,
 }: HistoryPageProps) {
   const isEmpty = !isLoading && entries.length === 0;
 
@@ -27,12 +29,24 @@ export default function HistoryPage({
             <p className="font-['Roboto_Flex:Regular',sans-serif] text-3xl sm:text-4xl md:text-[56px] leading-[normal] font-normal text-black not-italic">
               History
             </p>
-            <button
-              className="rounded-lg border border-gray-900 px-4 py-2 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-100"
-              onClick={onRefresh}
-            >
-              Refresh
-            </button>
+            <div className="flex gap-2">
+              <button
+                className="rounded-lg border border-gray-900 px-4 py-2 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-100"
+                onClick={onRefresh}
+              >
+                Refresh
+              </button>
+              {onClearAll && (
+                <button
+                  className="rounded-lg border border-red-500 px-4 py-2 text-sm font-semibold text-red-500 transition-colors hover:bg-red-50 disabled:opacity-50"
+                  onClick={onClearAll}
+                  title="Wyczyść całą historię"
+                  disabled={entries.length === 0}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
 
           {isLoading && (
