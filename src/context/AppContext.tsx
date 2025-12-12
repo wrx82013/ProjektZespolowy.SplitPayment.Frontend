@@ -8,28 +8,15 @@ import {
   ReactNode,
 } from "react";
 import { toast } from "sonner";
-
-interface Item {
-  id: string;
-  name: string;
-  amount: string;
-  currency: string;
-}
-
-interface Homie {
-  id: string;
-  name: string;
-  contact: string;
-}
-
-export interface Calculation {
-  id: string;
-  title: string;
-  items: Item[];
-  homies: Homie[];
-  total: string;
-  timestamp: number;
-}
+import {
+  HistoryCalculation,
+  HistoryHomie,
+  HistoryItemEntry,
+} from "@/types/history";
+import {
+  fetchHistoryCalculations,
+  syncHistoryCalculations,
+} from "@/lib/api";
 
 interface CurrencySettings {
   mainCurrency: string;
@@ -39,19 +26,19 @@ interface CurrencySettings {
 }
 
 interface AppContextType {
-  calculations: Calculation[];
+  calculations: HistoryCalculation[];
   settings: CurrencySettings;
-  editingCalculation: Calculation | null;
+  editingCalculation: HistoryCalculation | null;
   handleSaveCalculation: (data: {
     title: string;
-    items: Item[];
-    homies: Homie[];
+    items: HistoryItemEntry[];
+    homies: HistoryHomie[];
     total: string;
   }) => void;
-  handleEditCalculation: (calculation: Calculation) => void;
+  handleEditCalculation: (calculation: HistoryCalculation) => void;
   handleDeleteCalculation: (id: string) => void;
   handleSettingsChange: (newSettings: CurrencySettings) => void;
-  setEditingCalculation: (calculation: Calculation | null) => void;
+  setEditingCalculation: (calculation: HistoryCalculation | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -71,9 +58,9 @@ const DEFAULT_SETTINGS: CurrencySettings = {
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [calculations, setCalculations] = useState<Calculation[]>([]);
+  const [calculations, setCalculations] = useState<HistoryCalculation[]>([]);
   const [editingCalculation, setEditingCalculation] =
-    useState<Calculation | null>(null);
+    useState<HistoryCalculation | null>(null);
   const [settings, setSettings] = useState<CurrencySettings>(DEFAULT_SETTINGS);
 
   useEffect(() => {
@@ -85,6 +72,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
         console.error("Failed to load calculations", e);
       }
     }
+
+    const loadServerHistory = async () => {
+      try {
+        const remoteCalculations = await fetchHistoryCalculations();
+        setCalculations(remoteCalculations);
+        localStorage.setItem(
+          "splitpay_calculations",
+          JSON.stringify(remoteCalculations),
+        );
+      } catch (error) {
+        console.error("Failed to fetch history from server", error);
+      }
+    };
+
+    void loadServerHistory();
   }, []);
 
   useEffect(() => {
@@ -109,39 +111,49 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /**
    * TODO: Add debounce for 300-500ms
    * */
+  const persistHistory = (list: HistoryCalculation[]) => {
+    void syncHistoryCalculations(list).catch((error) => {
+      console.error("Failed to sync history", error);
+    });
+  };
+
   const handleSaveCalculation = (data: {
     title: string;
-    items: Item[];
-    homies: Homie[];
+    items: HistoryItemEntry[];
+    homies: HistoryHomie[];
     total: string;
   }) => {
     if (editingCalculation) {
-      setCalculations(
-        calculations.map((calc) =>
-          calc.id === editingCalculation.id
-            ? { ...calc, ...data, timestamp: Date.now() }
-            : calc,
-        ),
+      const updatedCalculations = calculations.map((calc) =>
+        calc.id === editingCalculation.id
+          ? { ...calc, ...data, timestamp: Date.now() }
+          : calc,
       );
+      setCalculations(updatedCalculations);
+      persistHistory(updatedCalculations);
       setEditingCalculation(null);
       toast.success("Calculation updated!");
     } else {
-      const newCalculation: Calculation = {
+      const newCalculation: HistoryCalculation = {
         id: Date.now().toString(),
         ...data,
         timestamp: Date.now(),
       };
-      setCalculations([newCalculation, ...calculations]);
+      const updatedCalculations = [newCalculation, ...calculations];
+      setCalculations(updatedCalculations);
+      persistHistory(updatedCalculations);
       toast.success("Calculation saved to history!");
     }
   };
 
-  const handleEditCalculation = (calculation: Calculation) => {
+  const handleEditCalculation = (calculation: HistoryCalculation) => {
     setEditingCalculation(calculation);
   };
 
   const handleDeleteCalculation = (id: string) => {
-    setCalculations(calculations.filter((calc) => calc.id !== id));
+    const updatedCalculations = calculations.filter((calc) => calc.id !== id);
+    setCalculations(updatedCalculations);
+    persistHistory(updatedCalculations);
     toast.success("Calculation deleted!");
   };
 

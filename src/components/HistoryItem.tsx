@@ -1,8 +1,38 @@
+import Link from "next/link";
+import {
+  PaymentStatus,
+  SplitPaymentResponseDto,
+  UserPaymentDto,
+} from "@/types/api";
+
 interface HistoryItemProps {
-  title: string;
-  onEdit: () => void;
-  onDelete: () => void;
+  entry: SplitPaymentResponseDto;
+  onRemove: (requestId: string) => void;
 }
+
+const statusLabel: Record<PaymentStatus, string> = {
+  [PaymentStatus.Pending]: "Pending",
+  [PaymentStatus.InProgress]: "In progress",
+  [PaymentStatus.Completed]: "Completed",
+  [PaymentStatus.Cancelled]: "Cancelled",
+  [PaymentStatus.Failed]: "Failed",
+};
+
+const formatDate = (value: string) => {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return "-";
+  }
+  return parsed.toLocaleString();
+};
+
+const formatTotal = (
+  amount: number,
+  currency?: string | null,
+) => `${amount.toFixed(2)} ${currency ?? ""}`.trim();
+
+const countParticipants = (users?: UserPaymentDto[] | null) =>
+  users?.length ?? 0;
 
 function TrashIcon() {
   return (
@@ -24,7 +54,7 @@ function TrashIcon() {
   );
 }
 
-function EditIcon() {
+function DetailsIcon() {
   return (
     <div className="absolute top-[7px] left-[8px] size-[24px]">
       <svg
@@ -35,7 +65,7 @@ function EditIcon() {
       >
         <g>
           <path
-            d="M5 19H6.425L16.2 9.225L14.775 7.8L5 17.575V19ZM3 21V16.75L16.2 3.575C16.4 3.39167 16.621 3.25 16.863 3.15C17.105 3.05 17.359 3 17.625 3C17.891 3 18.1493 3.05 18.4 3.15C18.6507 3.25 18.8673 3.4 19.05 3.6L20.425 5C20.625 5.18333 20.771 5.4 20.863 5.65C20.955 5.9 21.0007 6.15 21 6.4C21 6.66667 20.9543 6.921 20.863 7.163C20.7717 7.405 20.6257 7.62567 20.425 7.825L7.25 21H3ZM15.475 8.525L14.775 7.8L16.2 9.225L15.475 8.525Z"
+            d="M12 4L10.59 5.41L16.17 11H4V13H16.17L10.59 18.59L12 20L20 12L12 4Z"
             fill="currentColor"
           />
         </g>
@@ -44,35 +74,49 @@ function EditIcon() {
   );
 }
 
-export default function HistoryItem({
-  title,
-  onEdit,
-  onDelete,
-}: HistoryItemProps) {
+export default function HistoryItem({ entry, onRemove }: HistoryItemProps) {
   return (
-    <div className="relative flex w-full shrink-0 content-stretch items-center gap-[16px]">
-      <div className="relative box-border flex w-[541px] shrink-0 content-stretch items-center gap-2.5 rounded-lg p-[10px]">
+    <div className="relative flex w-full flex-col gap-3 rounded-xl border border-gray-200 p-3 sm:flex-row sm:items-center sm:gap-4">
+      <div className="relative box-border flex w-full flex-1 flex-col gap-1 rounded-lg p-[10px]">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 rounded-lg border border-solid border-gray-900"
         />
-        <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif]  leading-[normal] font-normal text-nowrap whitespace-pre text-gray-900 not-italic">
-          {title}
+        <p className="relative w-full break-words font-['Roboto_Flex:Regular',sans-serif] text-lg font-semibold text-gray-900">
+          {entry.description || "Split payment"}
+        </p>
+        <p className="relative text-sm text-gray-600">
+          Request ID:{" "}
+          <span className="font-mono text-xs">{entry.requestId}</span>
+        </p>
+        <p className="relative text-sm text-gray-600">
+          Status: {statusLabel[entry.status] ?? "Unknown"}
+        </p>
+        <p className="relative text-sm text-gray-600">
+          Total: {formatTotal(entry.totalAmount, entry.currency)}
+        </p>
+        <p className="relative text-sm text-gray-600">
+          Participants: {countParticipants(entry.userPayments)}
+        </p>
+        <p className="relative text-xs text-gray-500">
+          Created at: {formatDate(entry.createdAt)}
         </p>
       </div>
-      <div className="relative flex shrink-0 content-stretch items-center gap-[15px]">
+      <div className="relative flex flex-wrap items-center gap-3">
         <button
-          onClick={onDelete}
-          className="relative size-[39px] shrink-0 rounded-lg bg-custom-red transition-colors hover:bg-custom-red-dark"
+          onClick={() => onRemove(entry.requestId)}
+          className="relative size-[44px] shrink-0 rounded-lg bg-custom-red transition-colors hover:bg-custom-red-dark"
+          aria-label="Remove from history"
         >
           <TrashIcon />
         </button>
-        <button
-          onClick={onEdit}
-          className="relative size-[39px] shrink-0 rounded-lg bg-custom-green transition-colors hover:bg-custom-green-dark"
+        <Link
+          href={`/payment/${entry.requestId}`}
+          className="relative flex size-[44px] items-center justify-center rounded-lg bg-custom-green transition-colors hover:bg-custom-green-dark"
+          aria-label="View details"
         >
-          <EditIcon />
-        </button>
+          <DetailsIcon />
+        </Link>
       </div>
     </div>
   );

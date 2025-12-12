@@ -18,6 +18,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SplitPayHomie",
   description: "Pay for your bills toghether",
+  manifest: "/manifest.webmanifest",
+  themeColor: "#57cbab",
 };
 
 export default function RootLayout({

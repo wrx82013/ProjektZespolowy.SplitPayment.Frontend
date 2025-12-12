@@ -7,7 +7,7 @@ interface SettingsPageProps {
   settings: CurrencySettings;
   onSettingsChange: (settings: CurrencySettings) => void;
   // onNavigateToSplit: () => void;
-  // onNavigateToHistory: () => void;
+  // onNavigateToHistory: () => void;;
 }
 
 export default function SettingsPage({
@@ -42,21 +42,21 @@ export default function SettingsPage({
     <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-8">
         {/* Title */}
-        <div className="mx-auto flex w-full max-w-[612px] flex-col content-stretch items-start gap-5 px-4 py-5">
-          <p className="font-['Roboto_Flex:Regular',sans-serif] text-[56px] leading-[normal] font-normal text-black not-italic">
+        <div className="mx-auto flex w-full max-w-[612px] flex-col content-stretch items-start gap-5 px-2 sm:px-4 py-5">
+          <p className="font-['Roboto_Flex:Regular',sans-serif] text-3xl sm:text-4xl md:text-[56px] leading-[normal] font-normal text-black not-italic">
             Settings
           </p>
 
           {/* Currencies Section */}
-          <div className="max-w-[700px]">
-            <p className="mb-6 font-['Roboto_Flex:Regular',sans-serif] text-[24px] leading-[normal] font-normal text-black not-italic">
+          <div className="w-full">
+            <p className="mb-6 font-['Roboto_Flex:Regular',sans-serif] text-xl sm:text-2xl md:text-[24px] leading-[normal] font-normal text-black not-italic">
               Currencies
             </p>
 
             {/* Main Currency */}
-            <div className="mb-6 flex items-center gap-4">
-              <div className="relative box-border flex w-[200px] content-stretch items-center justify-between rounded-xl p-2.5">
-                <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif]  leading-[normal] font-normal text-nowrap whitespace-pre text-black not-italic">
+            <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+              <div className="relative box-border flex w-full sm:w-[200px] content-stretch items-center justify-between rounded-xl p-2.5">
+                <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif] leading-[normal] font-normal text-black not-italic">
                   Main currency
                 </p>
               </div>
@@ -66,7 +66,7 @@ export default function SettingsPage({
                 onChange={(e) =>
                   handleMainCurrencyChange(e.target.value as string)
                 }
-                className="relative box-border flex w-[120px] cursor-pointer content-stretch items-center justify-between rounded-lg border border-solid border-black bg-white p-[10px] font-['Roboto_Flex:Regular',sans-serif]  leading-[normal] font-normal text-black not-italic"
+                className="relative box-border flex w-full sm:w-[120px] cursor-pointer content-stretch items-center justify-between rounded-lg border border-solid border-black bg-white p-[10px] font-['Roboto_Flex:Regular',sans-serif] leading-[normal] font-normal text-black not-italic"
               >
                 {currencies.map((currency) => (
                   <option key={currency} value={currency}>
@@ -81,45 +81,47 @@ export default function SettingsPage({
               {currencies
                 .filter((c) => c !== settings.mainCurrency)
                 .map((currency) => (
-                  <div key={currency} className="flex items-center gap-4">
-                    <div className="relative box-border flex w-[200px] content-stretch items-center justify-between rounded-lg p-[10px]">
+                  <div key={currency} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                    <div className="relative box-border flex w-full sm:w-[200px] content-stretch items-center justify-between rounded-lg p-[10px]">
                       <div
                         aria-hidden="true"
                         className="pointer-events-none absolute inset-0 rounded-lg border border-solid border-black"
                       />
-                      <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif]  leading-[normal] font-normal text-nowrap whitespace-pre text-black not-italic">
+                      <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif] leading-[normal] font-normal text-black not-italic">
                         Exchange rate
                       </p>
                     </div>
 
-                    <div className="relative box-border flex w-[180px] content-stretch items-center gap-2 rounded-xl p-2.5">
-                      <div
-                        aria-hidden="true"
-                        className="pointer-events-none absolute inset-0 rounded-xl border border-solid border-black"
-                      />
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={settings.exchangeRates[currency]}
-                        onChange={(e) =>
-                          handleExchangeRateChange(currency, e.target.value)
-                        }
-                        className="relative w-20 shrink-0 bg-transparent font-['Roboto_Flex:Regular',sans-serif]  leading-[normal] font-normal text-black not-italic outline-none"
-                      />
-                      <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif]  leading-[normal] font-normal text-nowrap whitespace-pre text-[rgba(0,0,0,0.5)] not-italic">
-                        {settings.mainCurrency}
-                      </p>
-                    </div>
+                    <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto">
+                      <div className="relative box-border flex w-full sm:w-[180px] content-stretch items-center gap-2 rounded-xl p-2.5">
+                        <div
+                          aria-hidden="true"
+                          className="pointer-events-none absolute inset-0 rounded-xl border border-solid border-black"
+                        />
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={settings.exchangeRates[currency]}
+                          onChange={(e) =>
+                            handleExchangeRateChange(currency, e.target.value)
+                          }
+                          className="relative w-20 shrink-0 bg-transparent font-['Roboto_Flex:Regular',sans-serif] leading-[normal] font-normal text-black not-italic outline-none"
+                        />
+                        <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif] leading-[normal] font-normal whitespace-nowrap text-[rgba(0,0,0,0.5)] not-italic">
+                          {settings.mainCurrency}
+                        </p>
+                      </div>
 
-                    <div className="relative box-border flex w-[120px] content-stretch items-center justify-between rounded-xl p-2.5">
-                      <div
-                        aria-hidden="true"
-                        className="pointer-events-none absolute inset-0 rounded-xl border border-solid border-black"
-                      />
-                      <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif]  leading-[normal] font-normal text-nowrap whitespace-pre text-black not-italic">
-                        {currency}
-                      </p>
+                      <div className="relative box-border flex w-[120px] content-stretch items-center justify-between rounded-xl p-2.5">
+                        <div
+                          aria-hidden="true"
+                          className="pointer-events-none absolute inset-0 rounded-xl border border-solid border-black"
+                        />
+                        <p className="relative shrink-0 font-['Roboto_Flex:Regular',sans-serif] leading-[normal] font-normal whitespace-nowrap text-black not-italic">
+                          {currency}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 ))}

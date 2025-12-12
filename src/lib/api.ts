@@ -2,13 +2,13 @@ import {
   CreateSplitPaymentRequestDto,
   SplitPaymentResponseDto,
 } from "../types/api";
+import { HistoryCalculation } from "@/types/history";
 
-export const API_BASE_URL = "http://projektzespolowy_splitpayment:5000";
-
+// Next.js API routes - te są wywoływane z przeglądarki i komunikują się z backendem
 export const createSplitPayment = async (
   data: CreateSplitPaymentRequestDto,
 ): Promise<SplitPaymentResponseDto> => {
-  const response = await fetch(`${API_BASE_URL}/api/SplitPayment`, {
+  const response = await fetch(`/api/SplitPayment`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -27,7 +27,7 @@ export const createSplitPayment = async (
 export const getSplitPayment = async (
   id: string,
 ): Promise<SplitPaymentResponseDto> => {
-  const response = await fetch(`${API_BASE_URL}/api/SplitPayment/${id}`);
+  const response = await fetch(`/api/SplitPayment/${id}`);
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -40,7 +40,7 @@ export const getSplitPayment = async (
 export const validateSplitPayment = async (
   data: CreateSplitPaymentRequestDto,
 ): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/api/SplitPayment/validate`, {
+  const response = await fetch(`/api/SplitPayment/validate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -51,5 +51,35 @@ export const validateSplitPayment = async (
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.errors.join(", ") || "Validation failed");
+  }
+};
+
+export const fetchHistoryCalculations = async (): Promise<
+  HistoryCalculation[]
+> => {
+  const response = await fetch(`/api/history`);
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to fetch history");
+  }
+
+  return response.json();
+};
+
+export const syncHistoryCalculations = async (
+  calculations: HistoryCalculation[],
+): Promise<void> => {
+  const response = await fetch(`/api/history`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ calculations }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Failed to sync history");
   }
 };
