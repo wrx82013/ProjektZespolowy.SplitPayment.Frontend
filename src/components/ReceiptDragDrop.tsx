@@ -1,6 +1,6 @@
 "use client";
 
-import { DragEvent, useCallback, useState } from "react";
+import { DragEvent, useCallback, useState, useRef, useEffect, TouchEvent } from "react";
 
 interface ReceiptDragDropProps {
   onFileDropped: (file: File) => void;
@@ -23,6 +23,26 @@ function createMockReceiptFile(): File {
 
 export default function ReceiptDragDrop({ onFileDropped }: ReceiptDragDropProps) {
   const [isOver, setIsOver] = useState(false);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
+  const dragSourceRef = useRef<HTMLDivElement>(null);
+
+  // Prevent pull-to-refresh on mobile when interacting with drag-drop areas
+  useEffect(() => {
+    const preventPullToRefresh = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (
+        dropZoneRef.current?.contains(target) ||
+        dragSourceRef.current?.contains(target)
+      ) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener("touchmove", preventPullToRefresh, { passive: false });
+    return () => {
+      document.removeEventListener("touchmove", preventPullToRefresh);
+    };
+  }, []);
 
   const onDragStartMock = (e: DragEvent<HTMLDivElement>) => {
     e.dataTransfer.setData("application/x-receipt-mock", "1");
@@ -61,7 +81,11 @@ export default function ReceiptDragDrop({ onFileDropped }: ReceiptDragDropProps)
   return (
     <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3">
       {/* Drag source */}
-      <div className="flex items-center justify-center rounded-lg border border-dashed border-black p-4 bg-gray-50">
+      <div
+        ref={dragSourceRef}
+        className="flex items-center justify-center rounded-lg border border-dashed border-black p-4 bg-gray-50"
+        style={{ touchAction: "none" }}
+      >
         <div
           draggable
           onDragStart={onDragStartMock}
@@ -75,16 +99,18 @@ export default function ReceiptDragDrop({ onFileDropped }: ReceiptDragDropProps)
 
       {/* Drop zone */}
       <div
+        ref={dropZoneRef}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`rounded-lg border border-dashed p-4 transition-colors ${
           isOver ? "border-custom-green bg-green-50" : "border-black bg-gray-50"
         }`}
+        style={{ touchAction: "none" }}
         title="Upuść plik lub ikonę tutaj"
       >
         <p className="text-sm text-black">
-          Upuść tutaj plik rachunku lub przeciągnij mock ikonę po lewej.
+          Upuść tutaj plik rachunku.
         </p>
       </div>
     </div>

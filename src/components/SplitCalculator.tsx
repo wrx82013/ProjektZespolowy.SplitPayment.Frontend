@@ -445,19 +445,9 @@ export default function SplitCalculator() {
 
       {/* Items Section */}
       <div className="flex w-full shrink-0 flex-col items-start gap-3.5">
-        <div className="flex w-full items-center justify-between gap-2">
-          <p className="w-full shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-2xl text-black">
-            Items
-          </p>
-          <button
-            type="button"
-            onClick={triggerReceiptUpload}
-            disabled={isImporting}
-            className="rounded-lg border border-solid border-black px-3 py-2 text-sm font-semibold transition-colors hover:bg-gray-100 disabled:opacity-50"
-          >
-            {isImporting ? "Importing..." : "Scan receipt"}
-          </button>
-        </div>
+        <p className="w-full shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-2xl text-black">
+          Items
+        </p>
         <div className="flex w-full shrink-0 flex-col items-start gap-3">
           {items.map((item) => (
             <div key={item.id} className="flex w-full items-center gap-2">
