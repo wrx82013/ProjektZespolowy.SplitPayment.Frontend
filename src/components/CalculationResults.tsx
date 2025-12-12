@@ -89,7 +89,7 @@ export default function CalculationResults({
           </p>
           <div className="flex w-full flex-col items-start gap-3 font-['Roboto_Flex:Bold',sans-serif] font-bold text-custom-green text-sm sm:text-base">
             {splits.map((split, index) => (
-              <p key={index} className="w-full shrink-0 break-words">
+              <p key={index} className="w-full shrink-0">
                 {split.name}: {split.amount}
               </p>
             ))}

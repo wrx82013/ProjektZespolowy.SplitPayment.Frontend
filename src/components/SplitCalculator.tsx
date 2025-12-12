@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { ChangeEvent, useRef, useState } from "react";
 import BillItem from "./BillItem";
 import HomieItem from "./HomieItem";
 import AddButton from "./AddButton";
 import CalculationResults from "./CalculationResults";
 import { toast } from "sonner";
-import { createSplitPayment, validateSplitPayment } from "@/lib/api";
+import {
+  createSplitPayment,
+  uploadReceipt,
+  validateSplitPayment,
+} from "@/lib/api";
 import { addHistoryRequestId } from "@/lib/historyStorage";
 import {
   CreateSplitPaymentRequestDto,
@@ -28,6 +32,7 @@ interface Homie {
   percentage: string;
   userEmail: string;
   isExcluded: boolean;
+  excludedItemIds: string[];
 }
 
 export default function SplitCalculator() {
@@ -40,6 +45,8 @@ export default function SplitCalculator() {
   const [manualPercentageOverrides, setManualPercentageOverrides] = useState(
     new Set<string>(),
   );
+  const [isImporting, setIsImporting] = useState(false);
+  const receiptInputRef = useRef<HTMLInputElement>(null);
 
   const exchangeRates = { PLN: 1, USD: 4, EUR: 4.5, GBP: 5 };
 
@@ -145,6 +152,7 @@ export default function SplitCalculator() {
         percentage: "",
         userEmail: "",
         isExcluded: false,
+        excludedItemIds: [],
       },
     ];
     const recalculatedHomies = recalculatePercentages(
@@ -156,6 +164,12 @@ export default function SplitCalculator() {
 
   const removeItem = (id: string) => {
     setItems(items.filter((item) => item.id !== id));
+    setHomies((prev) =>
+      prev.map((homie) => ({
+        ...homie,
+        excludedItemIds: homie.excludedItemIds.filter((itemId) => itemId !== id),
+      })),
+    );
   };
 
   const removeHomie = (id: string) => {
@@ -269,14 +283,74 @@ export default function SplitCalculator() {
     setHomies(recalculatedHomies);
   };
 
+  const toggleHomieItemParticipation = (homieId: string, itemId: string) => {
+    setHomies((prev) =>
+      prev.map((homie) => {
+        if (homie.id !== homieId) return homie;
+
+        const excluded = new Set(homie.excludedItemIds);
+        if (excluded.has(itemId)) {
+          excluded.delete(itemId);
+        } else {
+          excluded.add(itemId);
+        }
+
+        return { ...homie, excludedItemIds: Array.from(excluded) };
+      }),
+    );
+  };
+
+  const handleReceiptFileChange = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const result = await uploadReceipt(file);
+      const importedItems = result.items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        amount: item.amount.toString(),
+        currency: item.currency,
+      }));
+
+      setItems((prev) => [...prev, ...importedItems]);
+      toast.success("Dodano pozycje z rachunku", { duration: 2500 });
+    } catch (error: any) {
+      toast.error(error.message || "Nie udało się odczytać rachunku", {
+        duration: 3000,
+      });
+    } finally {
+      setIsImporting(false);
+      event.target.value = "";
+    }
+  };
+
+  const triggerReceiptUpload = () => {
+    receiptInputRef.current?.click();
+  };
+
   const calculateSplit = async () => {
+    const payloadItems = items
+      .map((item, index) => ({
+        id: item.id,
+        name: item.name || `Item ${index + 1}`,
+        amount: parseFloat(item.amount) || 0,
+        currency: item.currency,
+      }))
+      .filter((item) => item.amount > 0);
+
     const users: UserPaymentInputDto[] = homies.map((homie) => ({
       userId: homie.id,
       userName: homie.name,
       userEmail: homie.userEmail,
+      isExcluded: homie.isExcluded,
       percentage: homie.isExcluded
         ? 0
-        : parseFloat(homie.percentage) || null,
+        : parseFloat(homie.percentage) || 0,
+      excludedItemIds: homie.excludedItemIds,
     }));
 
     const requestData: CreateSplitPaymentRequestDto = {
@@ -284,7 +358,8 @@ export default function SplitCalculator() {
       currency: "PLN",
       splitType: SplitType.Percentage,
       description: billTitle,
-      users: users,
+      users,
+      items: payloadItems,
     };
 
     try {
@@ -315,7 +390,7 @@ export default function SplitCalculator() {
     <div className="mx-auto flex w-full max-w-[612px] flex-col items-start gap-5 px-2 sm:px-4 py-5">
       {/* Title */}
       <div className="relative flex w-full shrink-0 items-center justify-between">
-        <p className="relative font-['Roboto_Flex:Regular',sans-serif] text-2xl sm:text-4xl md:text-[56px] leading-[normal] font-normal text-black not-italic break-words">
+        <p className="relative font-['Roboto_Flex:Regular',sans-serif] text-2xl sm:text-4xl md:text-[56px] leading-[normal] font-normal text-black not-italic">
           What are you spliting?
         </p>
       </div>
@@ -335,11 +410,29 @@ export default function SplitCalculator() {
         </div>
       </div>
 
+      <input
+        type="file"
+        ref={receiptInputRef}
+        className="hidden"
+        accept="image/*,.pdf,.txt"
+        onChange={handleReceiptFileChange}
+      />
+
       {/* Items Section */}
       <div className="flex w-full shrink-0 flex-col items-start gap-3.5">
-        <p className="w-full shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-2xl text-black">
-          Items
-        </p>
+        <div className="flex w-full items-center justify-between gap-2">
+          <p className="w-full shrink-0 font-['Roboto_Flex:Regular',sans-serif] text-2xl text-black">
+            Items
+          </p>
+          <button
+            type="button"
+            onClick={triggerReceiptUpload}
+            disabled={isImporting}
+            className="rounded-lg border border-solid border-black px-3 py-2 text-sm font-semibold transition-colors hover:bg-gray-100 disabled:opacity-50"
+          >
+            {isImporting ? "Importing..." : "Scan receipt"}
+          </button>
+        </div>
         <div className="flex w-full shrink-0 flex-col items-start gap-3">
           {items.map((item) => (
             <div key={item.id} className="flex w-full items-center gap-2">
@@ -380,6 +473,8 @@ export default function SplitCalculator() {
                 email={homie.userEmail}
                 percentage={homie.percentage}
                 isExcluded={homie.isExcluded}
+                items={items}
+                excludedItemIds={homie.excludedItemIds}
                 onNameChange={(value) => updateHomie(homie.id, "name", value)}
                 onEmailChange={(value) =>
                   updateHomie(homie.id, "userEmail", value)
@@ -388,6 +483,9 @@ export default function SplitCalculator() {
                   updateHomie(homie.id, "percentage", value)
                 }
                 onToggleExclude={() => toggleHomieExclusion(homie.id)}
+                onToggleItemParticipation={(itemId) =>
+                  toggleHomieItemParticipation(homie.id, itemId)
+                }
                 placeholder={
                   homie.isExcluded ? "0" : defaultPercentagePlaceholder
                 }

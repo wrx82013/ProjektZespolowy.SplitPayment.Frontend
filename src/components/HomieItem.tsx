@@ -1,14 +1,22 @@
 import DeleteButton from "./DeleteButton";
 
+interface HomieItemBillSummary {
+  id: string;
+  name: string;
+}
+
 interface HomieItemProps {
   name: string;
   email: string;
   percentage: string;
   isExcluded: boolean;
+  items: HomieItemBillSummary[];
+  excludedItemIds: string[];
   onNameChange: (value: string) => void;
   onEmailChange: (value: string) => void;
   onPercentageChange: (value: string) => void;
   onToggleExclude: () => void;
+  onToggleItemParticipation: (itemId: string) => void;
   removeHomie: () => void;
   placeholder: string;
 }
@@ -18,10 +26,13 @@ export default function HomieItem({
   email,
   percentage,
   isExcluded,
+  items,
+  excludedItemIds,
   onNameChange,
   onEmailChange,
   onPercentageChange,
   onToggleExclude,
+  onToggleItemParticipation,
   placeholder,
   removeHomie,
 }: HomieItemProps) {
@@ -72,6 +83,31 @@ export default function HomieItem({
         <p className="text-xs text-gray-500">
           This friend will stay at 0% and be excluded from the split total.
         </p>
+      )}
+
+      {!isExcluded && items.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-semibold text-black">Items for this person</p>
+          <div className="flex flex-wrap gap-2">
+            {items.map((item) => {
+              const included = !excludedItemIds.includes(item.id);
+              return (
+                <label
+                  key={item.id}
+                  className={`flex items-center gap-2 rounded border px-2 py-1 text-xs ${included ? "border-custom-green text-black" : "border-gray-300 text-gray-600"}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={included}
+                    onChange={() => onToggleItemParticipation(item.id)}
+                    className="size-4"
+                  />
+                  <span>{item.name || "Item"}</span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
       )}
     </div>
   );

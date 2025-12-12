@@ -1,17 +1,52 @@
 import { test, expect } from "@playwright/test";
 
-// TODO: Fix failing test. Implement more cleanly
-test.skip("split calculation end-to-end test", async ({ page }) => {
+test("split calculation end-to-end test", async ({ page }) => {
+  const mockResponse = {
+    requestId: "abc123",
+    totalAmount: 60,
+    currency: "PLN",
+    splitType: 0,
+    description: "Dinner",
+    status: 0,
+    createdAt: new Date().toISOString(),
+    paymentUrl: "http://localhost:3000/payment/abc123",
+    userPayments: [
+      { id: "u1", userName: "Alice", amount: 36, percentage: 60, status: 0 },
+      { id: "u2", userName: "Bob", amount: 12, percentage: 20, status: 0 },
+      { id: "u3", userName: "Charlie", amount: 12, percentage: 20, status: 0 },
+    ],
+  };
+
+  await page.route("**/api/split-payment/validate", async (route) => {
+    await route.fulfill({ status: 200, body: JSON.stringify({ success: true }) });
+  });
+
+  await page.route("**/api/split-payment?id=*", async (route) => {
+    await route.fulfill({ status: 200, body: JSON.stringify(mockResponse) });
+  });
+
+  await page.route("**/api/split-payment", async (route) => {
+    if (route.request().method() === "POST") {
+      await route.fulfill({
+        status: 200,
+        body: JSON.stringify(mockResponse),
+        contentType: "application/json",
+      });
+      return;
+    }
+    await route.continue();
+  });
+
   await page.goto("http://localhost:3000/calculator");
 
   // Add two items
   await page.getByText("Enter more items").click();
   await page.locator('input[placeholder="Enter name"]').last().fill("Pizza");
-  await page.locator('input[placeholder="0.00"]').last().fill("50");
+  await page.locator('input[placeholder="0"]').last().fill("50");
 
   await page.getByText("Enter more items").click();
   await page.locator('input[placeholder="Enter name"]').last().fill("Coke");
-  await page.locator('input[placeholder="0.00"]').last().fill("10");
+  await page.locator('input[placeholder="0"]').last().fill("10");
 
   // Add two homies
   await page.getByText("Enter more homies").click();

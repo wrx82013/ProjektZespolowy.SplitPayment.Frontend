@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { CreateSplitPaymentRequestDto } from "@/types/api";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://projektzespolowy_splitpayment:5000";
+const FRONTEND_BASE_URL =
+  process.env.FRONTEND_BASE_URL ||
+  process.env.NEXT_PUBLIC_FRONTEND_URL ||
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  "http://localhost:3000";
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +16,7 @@ export async function POST(request: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-Frontend-Url": FRONTEND_BASE_URL,
       },
       body: JSON.stringify(body),
     });

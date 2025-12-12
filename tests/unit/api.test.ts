@@ -55,7 +55,7 @@ describe("API client helpers", () => {
     const result = await createSplitPayment(requestPayload);
 
     expect(fetchSpy).toHaveBeenCalledWith(
-      "/api/SplitPayment",
+      "/api/split-payment",
       expect.objectContaining({
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -80,7 +80,7 @@ describe("API client helpers", () => {
 
     const result = await getSplitPayment("abc");
 
-    expect(fetchSpy).toHaveBeenCalledWith("/api/SplitPayment?id=abc");
+    expect(fetchSpy).toHaveBeenCalledWith("/api/split-payment?id=abc");
     expect(result).toEqual(serverResponse);
   });
 
