@@ -6,7 +6,7 @@
 
 ---
 
-# TL;DR
+**TL;DR**
 
 SplitPayment lets users create bill-splitting calculations, share via link/QR, optionally attach receipts (OCR), and optionally collect payments (BLIK/apple pay/links). The MVP focuses on calculation UI, history, and shareable immutable links. App must be responsive and PWA-ready.
 
