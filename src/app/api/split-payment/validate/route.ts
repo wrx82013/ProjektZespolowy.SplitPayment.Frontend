@@ -3,10 +3,7 @@ import { CreateSplitPaymentRequestDto } from "@/types/api";
 
 const API_BASE_URL = process.env.API_BASE_URL;
 const FRONTEND_BASE_URL =
-  process.env.FRONTEND_BASE_URL ||
-  process.env.NEXT_PUBLIC_FRONTEND_URL ||
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  "http://localhost:3000";
+  process.env.NEXT_PUBLIC_FRONTEND_URL;
 
 export async function POST(request: NextRequest) {
   try {
