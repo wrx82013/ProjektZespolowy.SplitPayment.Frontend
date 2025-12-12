@@ -4,7 +4,7 @@ import {
   SplitPaymentResponseDto,
 } from "@/types/api";
 
-const API_BASE_URL = process.env.API_BASE_URL || "http://projektzespolowy_splitpayment:5000";
+const API_BASE_URL = process.env.API_BASE_URL;
 const FRONTEND_BASE_URL =
   process.env.FRONTEND_BASE_URL ||
   process.env.NEXT_PUBLIC_FRONTEND_URL ||
