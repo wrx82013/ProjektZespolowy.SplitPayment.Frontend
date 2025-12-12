@@ -108,7 +108,7 @@ jobs:
               --restart unless-stopped \
               -e NODE_ENV=development \
               -e PORT=3000 \
-              -e API_BASE_URL="${{ vars.API_BASE_URL }}" \
+              -e API_BASE_URL=http://projektzespolowy_splitpayment:8080 \
               "${IMAGE}"
 
             log "Waiting for container to stabilize..."
