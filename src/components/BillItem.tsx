@@ -32,13 +32,13 @@ export default function BillItem({
           className="w-full bg-transparent font-['Roboto_Flex:Regular',sans-serif] font-normal text-black not-italic outline-none"
         />
       </div>
-      <div className="relative box-border flex w-[90px] sm:w-[104px] shrink-0 content-stretch items-center justify-between rounded-xl p-2.5 border border-solid border-black">
+      <div className="relative box-border flex w-36 sm:w-40 shrink-0 items-center justify-between rounded-xl p-2.5 border border-solid border-black">
         <input
           type="number"
           value={amount}
           onChange={(e) => onAmountChange(e.target.value)}
           placeholder="0"
-          className="w-8 sm:w-10 bg-transparent font-['Roboto_Flex:Regular',sans-serif] leading-[normal] font-normal text-black not-italic outline-none"
+          className="w-24 sm:w-28 bg-transparent text-right font-['Roboto_Flex:Regular',sans-serif] leading-[normal] font-normal text-black not-italic outline-none"
         />
         <select
           value={currency}

@@ -11,6 +11,7 @@ import {
   uploadReceipt,
   validateSplitPayment,
 } from "@/lib/api";
+import ReceiptDragDrop from "./ReceiptDragDrop";
 import { addHistoryRequestId } from "@/lib/historyStorage";
 import {
   CreateSplitPaymentRequestDto,
@@ -332,6 +333,27 @@ export default function SplitCalculator() {
     receiptInputRef.current?.click();
   };
 
+  const handleReceiptFileDrop = async (file: File) => {
+    setIsImporting(true);
+    try {
+      const result = await uploadReceipt(file);
+      const importedItems = result.items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        amount: item.amount.toString(),
+        currency: item.currency,
+      }));
+      setItems((prev) => [...prev, ...importedItems]);
+      toast.success("Dodano pozycje z rachunku (drop)", { duration: 2500 });
+    } catch (error: any) {
+      toast.error(error.message || "Nie udało się odczytać rachunku", {
+        duration: 3000,
+      });
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   const calculateSplit = async () => {
     const payloadItems = items
       .map((item, index) => ({
@@ -417,6 +439,9 @@ export default function SplitCalculator() {
         accept="image/*,.pdf,.txt"
         onChange={handleReceiptFileChange}
       />
+
+      {/* Drag & Drop Receipt */}
+      <ReceiptDragDrop onFileDropped={handleReceiptFileDrop} />
 
       {/* Items Section */}
       <div className="flex w-full shrink-0 flex-col items-start gap-3.5">
